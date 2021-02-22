@@ -2,21 +2,21 @@ use ordered_float::OrderedFloat;
 
 #[derive(Debug, PartialEq)]
 pub struct Point {
-    x: OrderedFloat<f64>,
-    y: OrderedFloat<f64>,
+    x: f64,
+    y: f64,
 }
 
 impl Point {
     fn as_weighted_point(&self) -> WeightedPoint {
-        return WeightedPoint { x : self.x, y : self.y, weight : OrderedFloat(1.0) };
+        return WeightedPoint { x : self.x, y : self.y, weight : 1.0 };
     }
 }
 
 #[derive(Clone, Copy)]
 pub struct WeightedPoint {
-    x: OrderedFloat<f64>,
-    y: OrderedFloat<f64>,
-    weight: OrderedFloat<f64>,
+    x: f64,
+    y: f64,
+    weight: f64,
 }
 
 impl WeightedPoint {
@@ -33,15 +33,15 @@ impl WeightedPoint {
     }
 }
 
-pub fn interpolate(points : &Vec<Point>, at_x : &OrderedFloat<f64>) -> f64 {
-    let pos = points.binary_search_by_key(&at_x, |p| &p.x);
+pub fn interpolate(points : &Vec<Point>, at_x : f64) -> f64 {
+    let pos = points.binary_search_by_key(&OrderedFloat(at_x), |p| OrderedFloat(p.x));
     return match pos {
-        Ok(ix) => points[ix].y.into_inner(),
+        Ok(ix) => points[ix].y,
         Err(ix) => {
             let below = &points[ix-1];
             let above = &points[ix];
-            let prop = (at_x.into_inner()-(below.x.into_inner()))/(above.x.into_inner() - below.x.into_inner());
-            (above.y.into_inner()-below.y.into_inner())*prop + below.y.into_inner()
+            let prop = (at_x-(below.x))/(above.x - below.x);
+            (above.y-below.y)*prop + below.y
         }
     };
 }
@@ -52,7 +52,7 @@ pub fn isotonic(points: &Vec<Point>) -> Vec<Point> {
         .map(|p| p.as_weighted_point())
         .collect();
 
-    weighted_points.sort_by_key(|point| point.x);
+    weighted_points.sort_by_key(|point| OrderedFloat(point.x));
 
     let mut iso_points: Vec<WeightedPoint> = Vec::new();
     for weighted_point in &mut weighted_points.iter() {
@@ -90,28 +90,28 @@ mod tests {
     #[test]
     fn one_point() {
         assert_eq!(
-            isotonic(&vec![Point { x: OrderedFloat(1.0), y: OrderedFloat(2.0) }]).pop().unwrap(),
-            Point { x: OrderedFloat(1.0), y: OrderedFloat(2.0) }
+            isotonic(&vec![Point { x: 1.0, y: 2.0 }]).pop().unwrap(),
+            Point { x: 1.0, y: 2.0 }
         );
     }
 
     #[test]
     fn simple_merge() {
         assert_eq!(
-            isotonic(&vec![Point { x: OrderedFloat(1.0), y: OrderedFloat(2.0) }, Point { x: OrderedFloat(2.0), y: OrderedFloat(0.0) },])
+            isotonic(&vec![Point { x: 1.0, y: 2.0 }, Point { x: 2.0, y: 0.0 },])
                 .pop()
                 .unwrap(),
-            Point { x: OrderedFloat(1.5), y: OrderedFloat(1.0) }
+            Point { x: 1.5, y: 1.0 }
         );
     }
 
     #[test]
     fn one_not_merged() {
         assert_eq!(
-            isotonic(&vec![Point {x : OrderedFloat(0.5), y : OrderedFloat(-0.5)}, Point { x: OrderedFloat(1.0), y: OrderedFloat(2.0) }, Point { x: OrderedFloat(2.0), y: OrderedFloat(0.0) },])
+            isotonic(&vec![Point {x : 0.5, y : -0.5}, Point { x: 1.0, y: 2.0 }, Point { x: 2.0, y: 0.0 },])
                 .pop()
                 .unwrap(),
-            Point { x: OrderedFloat(1.5), y: OrderedFloat(1.0) }
+            Point { x: 1.5, y: 1.0 }
         );
     }
 }
