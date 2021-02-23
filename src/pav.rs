@@ -1,9 +1,52 @@
 use ordered_float::OrderedFloat;
 
+pub struct IsotonicRegression {
+    points: Vec<Point>,
+    mean_point: Point,
+}
+
+impl IsotonicRegression {
+    pub fn new(points: &Vec<Point>) -> IsotonicRegression {
+        let point_count: f64 = points.len() as f64;
+        let mut sum_x: f64 = 0.0;
+        let mut sum_y: f64 = 0.0;
+        for point in points {
+            sum_x += point.x;
+            sum_y += point.y;
+        }
+
+        IsotonicRegression {
+            points: isotonic(points),
+            mean_point: Point {
+                x: sum_x / point_count,
+                y: sum_y / point_count,
+            },
+        }
+    }
+
+    pub fn interpolate(&self, at_x: f64) -> f64 {
+        let pos = self
+            .points
+            .binary_search_by_key(&OrderedFloat(at_x), |p| OrderedFloat(p.x));
+        return match pos {
+            Ok(ix) => self.points[ix].y,
+            Err(ix) => {
+                if ix < 1 {
+                    interpolate_two_points(&self.points.first().unwrap(), &self.mean_point, at_x)
+                } else if ix >= self.points.len() {
+                    interpolate_two_points(&self.mean_point, self.points.last().unwrap(), at_x)
+                } else {
+                    interpolate_two_points(&self.points[ix - 1], &self.points[ix], at_x)
+                }
+            }
+        };
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct Point {
-    x: f64,
-    y: f64,
+    pub x: f64,
+    pub y: f64,
 }
 
 impl Point {
@@ -17,14 +60,14 @@ impl Point {
 }
 
 #[derive(Clone, Copy)]
-pub struct WeightedPoint {
+struct WeightedPoint {
     x: f64,
     y: f64,
     weight: f64,
 }
 
 impl WeightedPoint {
-    pub fn merge_with(&mut self, other: &WeightedPoint) {
+    fn merge_with(&mut self, other: &WeightedPoint) {
         self.x = ((self.x * self.weight) + (other.x * other.weight)) / (self.weight + other.weight);
 
         self.y = ((self.y * self.weight) + (other.y * other.weight)) / (self.weight + other.weight);
@@ -32,7 +75,7 @@ impl WeightedPoint {
         self.weight = self.weight + other.weight;
     }
 
-    pub fn as_point(&self) -> Point {
+    fn as_point(&self) -> Point {
         return Point {
             x: self.x,
             y: self.y,
@@ -40,24 +83,12 @@ impl WeightedPoint {
     }
 }
 
-pub fn interpolate(points: &Vec<Point>, at_x: f64) -> Result<f64, String> {
-    let pos = points.binary_search_by_key(&OrderedFloat(at_x), |p| OrderedFloat(p.x));
-    return match pos {
-        Ok(ix) => Ok(points[ix].y),
-        Err(ix) => {
-            if ix < 1 || ix >= points.len() {
-                Err(format!("at_x = {}, ix = {}, outside points range, points.len() = {}", at_x, ix, points.len()))
-            } else {
-                let below = &points[ix - 1];
-                let above = &points[ix];
-                let prop = (at_x - (below.x)) / (above.x - below.x);
-                Ok((above.y - below.y) * prop + below.y)
-            }
-        }
-    };
+fn interpolate_two_points(a: &Point, b: &Point, at_x: f64) -> f64 {
+    let prop = (at_x - (a.x)) / (b.x - a.x);
+    (b.y - a.y) * prop + a.y
 }
 
-pub fn isotonic(points: &Vec<Point>) -> Vec<Point> {
+fn isotonic(points: &Vec<Point>) -> Vec<Point> {
     let mut weighted_points: Vec<WeightedPoint> =
         points.iter().map(|p| p.as_weighted_point()).collect();
 
@@ -89,12 +120,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn no_points() {
+    fn isotonic_no_points() {
         assert_eq!(isotonic(&vec![]).is_empty(), true);
     }
 
     #[test]
-    fn one_point() {
+    fn isotonic_one_point() {
         assert_eq!(
             isotonic(&vec![Point { x: 1.0, y: 2.0 }]).pop().unwrap(),
             Point { x: 1.0, y: 2.0 }
@@ -102,7 +133,7 @@ mod tests {
     }
 
     #[test]
-    fn simple_merge() {
+    fn isotonic_simple_merge() {
         assert_eq!(
             isotonic(&vec![Point { x: 1.0, y: 2.0 }, Point { x: 2.0, y: 0.0 },])
                 .pop()
@@ -112,33 +143,36 @@ mod tests {
     }
 
     #[test]
-    fn one_not_merged() {
+    fn isotonic_one_not_merged() {
         assert_eq!(
             isotonic(&vec![
                 Point { x: 0.5, y: -0.5 },
                 Point { x: 1.0, y: 2.0 },
                 Point { x: 2.0, y: 0.0 },
             ]),
-            [Point { x: 0.5, y : -0.5}, Point { x: 1.5, y: 1.0 }]
+            [Point { x: 0.5, y: -0.5 }, Point { x: 1.5, y: 1.0 }]
         );
     }
 
     #[test]
-    fn merge_three() {
+    fn isotonic_merge_three() {
         assert_eq!(
             isotonic(&vec![
                 Point { x: 0.0, y: 1.0 },
                 Point { x: 1.0, y: 2.0 },
                 Point { x: 2.0, y: -1.0 },
             ]),
-            [Point { x: 1.0, y : 2.0/3.0}]
+            [Point {
+                x: 1.0,
+                y: 2.0 / 3.0
+            }]
         );
     }
 
     #[test]
     fn test_interpolate() {
-        let points = &vec![Point { x: 1.0, y: 5.0 }, Point { x: 2.0, y: 7.0 }];
-        assert_eq!(interpolate(points, 1.5), Ok(6.0));
-        assert_eq!(interpolate(points, 2.5).is_err(), true);
+        let regression =
+            IsotonicRegression::new(&vec![Point { x: 1.0, y: 5.0 }, Point { x: 2.0, y: 7.0 }]);
+        assert_eq!(regression.interpolate(1.5), 6.0);
     }
 }
