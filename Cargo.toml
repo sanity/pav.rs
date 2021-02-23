@@ -1,11 +1,11 @@
 [package]
-name = "pav"
+name = "pair_adjacent_violators"
 version = "0.1.0"
 authors = ["Ian Clarke <ian.clarke@gmail.com>"]
 edition = "2018"
 
 [lib]
-name = "pav"
+name = "pair_adjacent_violators"
 path = "src/lib.rs"
 
 [dependencies]

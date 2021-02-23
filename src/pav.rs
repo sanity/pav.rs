@@ -8,7 +8,11 @@ pub struct Point {
 
 impl Point {
     fn as_weighted_point(&self) -> WeightedPoint {
-        return WeightedPoint { x : self.x, y : self.y, weight : 1.0 };
+        return WeightedPoint {
+            x: self.x,
+            y: self.y,
+            weight: 1.0,
+        };
     }
 }
 
@@ -29,28 +33,33 @@ impl WeightedPoint {
     }
 
     pub fn as_point(&self) -> Point {
-        return Point { x: self.x, y: self.y };
+        return Point {
+            x: self.x,
+            y: self.y,
+        };
     }
 }
 
-pub fn interpolate(points : &Vec<Point>, at_x : f64) -> f64 {
+pub fn interpolate(points: &Vec<Point>, at_x: f64) -> Result<f64, String> {
     let pos = points.binary_search_by_key(&OrderedFloat(at_x), |p| OrderedFloat(p.x));
     return match pos {
-        Ok(ix) => points[ix].y,
+        Ok(ix) => Ok(points[ix].y),
         Err(ix) => {
-            let below = &points[ix-1];
-            let above = &points[ix];
-            let prop = (at_x-(below.x))/(above.x - below.x);
-            (above.y-below.y)*prop + below.y
+            if ix < 1 || ix >= points.len() {
+                Err(format!("at_x = {}, ix = {}, outside points range, points.len() = {}", at_x, ix, points.len()))
+            } else {
+                let below = &points[ix - 1];
+                let above = &points[ix];
+                let prop = (at_x - (below.x)) / (above.x - below.x);
+                Ok((above.y - below.y) * prop + below.y)
+            }
         }
     };
 }
 
 pub fn isotonic(points: &Vec<Point>) -> Vec<Point> {
-    let mut weighted_points: Vec<WeightedPoint> = points
-        .iter()
-        .map(|p| p.as_weighted_point())
-        .collect();
+    let mut weighted_points: Vec<WeightedPoint> =
+        points.iter().map(|p| p.as_weighted_point()).collect();
 
     weighted_points.sort_by_key(|point| OrderedFloat(point.x));
 
@@ -72,10 +81,7 @@ pub fn isotonic(points: &Vec<Point>) -> Vec<Point> {
         }
     }
 
-    return iso_points
-        .iter()
-        .map(|pw| pw.as_point())
-        .collect();
+    return iso_points.iter().map(|pw| pw.as_point()).collect();
 }
 
 #[cfg(test)]
@@ -108,10 +114,31 @@ mod tests {
     #[test]
     fn one_not_merged() {
         assert_eq!(
-            isotonic(&vec![Point {x : 0.5, y : -0.5}, Point { x: 1.0, y: 2.0 }, Point { x: 2.0, y: 0.0 },])
-                .pop()
-                .unwrap(),
-            Point { x: 1.5, y: 1.0 }
+            isotonic(&vec![
+                Point { x: 0.5, y: -0.5 },
+                Point { x: 1.0, y: 2.0 },
+                Point { x: 2.0, y: 0.0 },
+            ]),
+            [Point { x: 0.5, y : -0.5}, Point { x: 1.5, y: 1.0 }]
         );
+    }
+
+    #[test]
+    fn merge_three() {
+        assert_eq!(
+            isotonic(&vec![
+                Point { x: 0.0, y: 1.0 },
+                Point { x: 1.0, y: 2.0 },
+                Point { x: 2.0, y: -1.0 },
+            ]),
+            [Point { x: 1.0, y : 2.0/3.0}]
+        );
+    }
+
+    #[test]
+    fn test_interpolate() {
+        let points = &vec![Point { x: 1.0, y: 5.0 }, Point { x: 2.0, y: 7.0 }];
+        assert_eq!(interpolate(points, 1.5), Ok(6.0));
+        assert_eq!(interpolate(points, 2.5).is_err(), true);
     }
 }
