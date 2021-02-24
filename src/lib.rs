@@ -1,9 +1,11 @@
-//! [Pair Adjacent Violators](http://gifi.stat.ucla.edu/janspubs/2009/reports/deleeuw_hornik_mair_R_09.pdf) algorithm for [isotonic regression](https://en.wikipedia.org/wiki/Isotonic_regression)
+//! [Pair Adjacent Violators](http://gifi.stat.ucla.edu/janspubs/2009/reports/deleeuw_hornik_mair_R_09.pdf) algorithm for 
+//! [isotonic regression](https://en.wikipedia.org/wiki/Isotonic_regression)
 //!
 //! # What is "Isotonic Regression" and why should I care?
 //!
-//! Imagine you have two variables, _x_ and _y_, and you don't know the relationship between them, but you know that if _x_ increases then _y_ will increase,
-//! and if _x_ decreases then _y_ will decrease.  Alternatively it may be the opposite, if _x_ increases then _y_ decreases, and if _x_ decreases then _y_ increases.
+//! Imagine you have two variables, _x_ and _y_, and you don't know the relationship between them, but you know that if _x_ 
+//! increases then _y_ will increase, and if _x_ decreases then _y_ will decrease.  Alternatively it may be the opposite, 
+//! if _x_ increases then _y_ decreases, and if _x_ decreases then _y_ increases.
 //!
 //! Examples of such isotonic or monotonic relationships include:
 //!
@@ -30,7 +32,7 @@
 //! * A retailer could use it to choose a price for an item that maximizes their profit (aka "yield optimization")
 //!
 //! # Isotonic regression in online advertising
-
+//!
 //! If you have an hour to spare, and are interested in learning more about how online advertising works - you should check out [this lecture](https://vimeo.com/137999578)
 //! that I gave in 2015 where I explain how we were able to use pair adjacent violators to solve some fun problems.
 

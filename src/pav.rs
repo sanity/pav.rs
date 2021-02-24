@@ -5,8 +5,21 @@ pub struct IsotonicRegression {
     mean_point: Point,
 }
 
+#[derive(Copy, Clone)]
+enum Direction {
+    Ascending, Descending
+}
+
 impl IsotonicRegression {
-    pub fn new(points: &Vec<Point>) -> IsotonicRegression {
+    pub fn newAscending(points : &Vec<Point>) -> IsotonicRegression {
+        IsotonicRegression::new(points, Direction::Ascending)
+    }
+
+    pub fn newDescending(points : &Vec<Point>) -> IsotonicRegression {
+        IsotonicRegression::new(points, Direction::Descending)
+    }
+
+    fn new(points: &Vec<Point>, direction : Direction) -> IsotonicRegression {
         let point_count: f64 = points.len() as f64;
         let mut sum_x: f64 = 0.0;
         let mut sum_y: f64 = 0.0;
@@ -16,7 +29,7 @@ impl IsotonicRegression {
         }
 
         IsotonicRegression {
-            points: isotonic(points),
+            points: isotonic(points, direction),
             mean_point: Point {
                 x: sum_x / point_count,
                 y: sum_y / point_count,
@@ -88,20 +101,29 @@ fn interpolate_two_points(a: &Point, b: &Point, at_x: f64) -> f64 {
     (b.y - a.y) * prop + a.y
 }
 
-fn isotonic(points: &Vec<Point>) -> Vec<Point> {
+fn isotonic(points: &Vec<Point>, direction : Direction) -> Vec<Point> {
     let mut weighted_points: Vec<WeightedPoint> =
         points.iter().map(|p| p.as_weighted_point()).collect();
 
-    weighted_points.sort_by_key(|point| OrderedFloat(point.x));
+    weighted_points.sort_by_key(|point| OrderedFloat(match direction {
+        Direction::Ascending => point.x,
+        Direction::Descending => -point.x,
+    }));
+
+    // By xoring it this will effectively invert the conditional
+    let dir_bool = match direction {
+        Direction::Ascending => false,
+        Direction::Descending => true,
+    };
 
     let mut iso_points: Vec<WeightedPoint> = Vec::new();
     for weighted_point in &mut weighted_points.iter() {
-        if iso_points.is_empty() || weighted_point.y > iso_points.last().unwrap().y {
+        if iso_points.is_empty() || (dir_bool ^ (weighted_point.y > iso_points.last().unwrap().y)) {
             iso_points.push(weighted_point.clone())
         } else {
             let mut new_point = weighted_point.clone();
             loop {
-                if iso_points.is_empty() || iso_points.last().unwrap().y < (new_point).y {
+                if iso_points.is_empty() || (dir_bool ^ (iso_points.last().unwrap().y < (new_point).y)) {
                     iso_points.push(new_point);
                     break;
                 } else {
@@ -121,13 +143,13 @@ mod tests {
 
     #[test]
     fn isotonic_no_points() {
-        assert_eq!(isotonic(&vec![]).is_empty(), true);
+        assert_eq!(isotonic(&vec![], Direction::Ascending).is_empty(), true);
     }
 
     #[test]
     fn isotonic_one_point() {
         assert_eq!(
-            isotonic(&vec![Point { x: 1.0, y: 2.0 }]).pop().unwrap(),
+            isotonic(&vec![Point { x: 1.0, y: 2.0 }], Direction::Ascending).pop().unwrap(),
             Point { x: 1.0, y: 2.0 }
         );
     }
@@ -135,7 +157,7 @@ mod tests {
     #[test]
     fn isotonic_simple_merge() {
         assert_eq!(
-            isotonic(&vec![Point { x: 1.0, y: 2.0 }, Point { x: 2.0, y: 0.0 },])
+            isotonic(&vec![Point { x: 1.0, y: 2.0 }, Point { x: 2.0, y: 0.0 },], Direction::Ascending)
                 .pop()
                 .unwrap(),
             Point { x: 1.5, y: 1.0 }
@@ -149,7 +171,7 @@ mod tests {
                 Point { x: 0.5, y: -0.5 },
                 Point { x: 1.0, y: 2.0 },
                 Point { x: 2.0, y: 0.0 },
-            ]),
+            ], Direction::Ascending),
             [Point { x: 0.5, y: -0.5 }, Point { x: 1.5, y: 1.0 }]
         );
     }
@@ -161,7 +183,7 @@ mod tests {
                 Point { x: 0.0, y: 1.0 },
                 Point { x: 1.0, y: 2.0 },
                 Point { x: 2.0, y: -1.0 },
-            ]),
+            ], Direction::Ascending),
             [Point {
                 x: 1.0,
                 y: 2.0 / 3.0
@@ -172,7 +194,7 @@ mod tests {
     #[test]
     fn test_interpolate() {
         let regression =
-            IsotonicRegression::new(&vec![Point { x: 1.0, y: 5.0 }, Point { x: 2.0, y: 7.0 }]);
+            IsotonicRegression::newAscending(&vec![Point { x: 1.0, y: 5.0 }, Point { x: 2.0, y: 7.0 }]);
         assert_eq!(regression.interpolate(1.5), 6.0);
     }
 }
