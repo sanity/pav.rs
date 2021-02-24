@@ -1,7 +1,7 @@
 [package]
 name = "pav_regression"
 version = "0.1.0"
-authors = ["Ian Clarke <ian.clarke@gmail.com>"]
+authors = ["Ian Clarke <ian@locut.us>"]
 edition = "2018"
 license-file = "LICENSE"
 
