@@ -10,15 +10,15 @@ enum Direction {
 }
 
 impl IsotonicRegression {
-    pub fn new_ascending(points : &Vec<Point>) -> IsotonicRegression {
+    pub fn new_ascending(points : &[Point]) -> IsotonicRegression {
         IsotonicRegression::new(points, Direction::Ascending)
     }
 
-    pub fn new_descending(points : &Vec<Point>) -> IsotonicRegression {
+    pub fn new_descending(points : &[Point]) -> IsotonicRegression {
         IsotonicRegression::new(points, Direction::Descending)
     }
 
-    fn new(points: &Vec<Point>, direction : Direction) -> IsotonicRegression {
+    fn new(points: &[Point], direction : Direction) -> IsotonicRegression {
         let point_count: f64 = points.len() as f64;
         let mut sum_x: f64 = 0.0;
         let mut sum_y: f64 = 0.0;
@@ -26,7 +26,7 @@ impl IsotonicRegression {
             sum_x += point.x;
             sum_y += point.y;
         }
-        
+
         IsotonicRegression {
             points: isotonic(points, direction),
             mean_point: Point {
@@ -63,11 +63,11 @@ pub struct Point {
 
 impl Point {
     fn as_weighted_point(&self) -> WeightedPoint {
-        return WeightedPoint {
+        WeightedPoint {
             x: self.x,
             y: self.y,
             weight: 1.0,
-        };
+        }
     }
 }
 
@@ -84,14 +84,14 @@ impl WeightedPoint {
 
         self.y = ((self.y * self.weight) + (other.y * other.weight)) / (self.weight + other.weight);
 
-        self.weight = self.weight + other.weight;
+        self.weight += other.weight;
     }
 
     fn as_point(&self) -> Point {
-        return Point {
+        Point {
             x: self.x,
             y: self.y,
-        };
+        }
     }
 }
 
@@ -100,7 +100,7 @@ fn interpolate_two_points(a: &Point, b: &Point, at_x: f64) -> f64 {
     (b.y - a.y) * prop + a.y
 }
 
-fn isotonic(points: &Vec<Point>, direction : Direction) -> Vec<Point> {
+fn isotonic(points: &[Point], direction : Direction) -> Vec<Point> {
     let mut weighted_points: Vec<WeightedPoint> =
         points.iter().map(|p| p.as_weighted_point()).collect();
 
@@ -118,9 +118,9 @@ fn isotonic(points: &Vec<Point>, direction : Direction) -> Vec<Point> {
     let mut iso_points: Vec<WeightedPoint> = Vec::new();
     for weighted_point in &mut weighted_points.iter() {
         if iso_points.is_empty() || (dir_bool ^ (weighted_point.y > iso_points.last().unwrap().y)) {
-            iso_points.push(weighted_point.clone())
+            iso_points.push(*weighted_point)
         } else {
-            let mut new_point = weighted_point.clone();
+            let mut new_point = *weighted_point;
             loop {
                 if iso_points.is_empty() || (dir_bool ^ (iso_points.last().unwrap().y < (new_point).y)) {
                     iso_points.push(new_point);
