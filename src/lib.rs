@@ -1,10 +1,10 @@
-//! [Pair Adjacent Violators](http://gifi.stat.ucla.edu/janspubs/2009/reports/deleeuw_hornik_mair_R_09.pdf) algorithm for 
+//! [Pair Adjacent Violators](http://gifi.stat.ucla.edu/janspubs/2009/reports/deleeuw_hornik_mair_R_09.pdf) algorithm for
 //! [isotonic regression](https://en.wikipedia.org/wiki/Isotonic_regression)
 //!
 //! # What is "Isotonic Regression" and why should I care?
 //!
-//! Imagine you have two variables, _x_ and _y_, and you don't know the relationship between them, but you know that if _x_ 
-//! increases then _y_ will increase, and if _x_ decreases then _y_ will decrease.  Alternatively it may be the opposite, 
+//! Imagine you have two variables, _x_ and _y_, and you don't know the relationship between them, but you know that if _x_
+//! increases then _y_ will increase, and if _x_ decreases then _y_ will decrease.  Alternatively it may be the opposite,
 //! if _x_ increases then _y_ decreases, and if _x_ decreases then _y_ increases.
 //!
 //! Examples of such isotonic or monotonic relationships include:
