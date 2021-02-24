@@ -190,6 +190,6 @@ mod tests {
     fn test_interpolate() {
         let regression =
             IsotonicRegression::new_ascending(&[Point { x: 1.0, y: 5.0 }, Point { x: 2.0, y: 7.0 }]);
-        assert!((regression.interpolate(1.5) - 6.0).abs() < 0.00000);
+        assert!((regression.interpolate(1.5) - 6.0).abs() < f64::EPSILON);
     }
 }
