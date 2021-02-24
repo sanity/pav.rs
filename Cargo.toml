@@ -3,10 +3,11 @@ name = "pav_regression"
 description = "The pair adjacent violators algorithm for isotonic regression"
 homepage = "https://github.com/sanity/pair_adjacent_violators"
 repository = "https://github.com/sanity/pair_adjacent_violators"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Ian Clarke <ian@locut.us>"]
 edition = "2018"
 license-file = "LICENSE"
+readme="README.md"
 keywords = ["machine-learning"]
 
 [lib]
