@@ -142,13 +142,13 @@ mod tests {
 
     #[test]
     fn isotonic_no_points() {
-        assert_eq!(isotonic(&vec![], Direction::Ascending).is_empty(), true);
+        assert_eq!(isotonic(&[], Direction::Ascending).is_empty(), true);
     }
 
     #[test]
     fn isotonic_one_point() {
         assert_eq!(
-            isotonic(&vec![Point { x: 1.0, y: 2.0 }], Direction::Ascending).pop().unwrap(),
+            isotonic(&[Point { x: 1.0, y: 2.0 }], Direction::Ascending).pop().unwrap(),
             Point { x: 1.0, y: 2.0 }
         );
     }
@@ -156,7 +156,7 @@ mod tests {
     #[test]
     fn isotonic_simple_merge() {
         assert_eq!(
-            isotonic(&vec![Point { x: 1.0, y: 2.0 }, Point { x: 2.0, y: 0.0 },], Direction::Ascending)
+            isotonic(&[Point { x: 1.0, y: 2.0 }, Point { x: 2.0, y: 0.0 }], Direction::Ascending)
                 .pop()
                 .unwrap(),
             Point { x: 1.5, y: 1.0 }
@@ -166,11 +166,9 @@ mod tests {
     #[test]
     fn isotonic_one_not_merged() {
         assert_eq!(
-            isotonic(&vec![
-                Point { x: 0.5, y: -0.5 },
+            isotonic(&[Point { x: 0.5, y: -0.5 },
                 Point { x: 1.0, y: 2.0 },
-                Point { x: 2.0, y: 0.0 },
-            ], Direction::Ascending),
+                Point { x: 2.0, y: 0.0 }], Direction::Ascending),
             [Point { x: 0.5, y: -0.5 }, Point { x: 1.5, y: 1.0 }]
         );
     }
@@ -178,11 +176,9 @@ mod tests {
     #[test]
     fn isotonic_merge_three() {
         assert_eq!(
-            isotonic(&vec![
-                Point { x: 0.0, y: 1.0 },
+            isotonic(&[Point { x: 0.0, y: 1.0 },
                 Point { x: 1.0, y: 2.0 },
-                Point { x: 2.0, y: -1.0 },
-            ], Direction::Ascending),
+                Point { x: 2.0, y: -1.0 }], Direction::Ascending),
             [Point {
                 x: 1.0,
                 y: 2.0 / 3.0
@@ -193,7 +189,7 @@ mod tests {
     #[test]
     fn test_interpolate() {
         let regression =
-            IsotonicRegression::new_ascending(&vec![Point { x: 1.0, y: 5.0 }, Point { x: 2.0, y: 7.0 }]);
-        assert_eq!(regression.interpolate(1.5), 6.0);
+            IsotonicRegression::new_ascending(&[Point { x: 1.0, y: 5.0 }, Point { x: 2.0, y: 7.0 }]);
+        assert!((regression.interpolate(1.5) - 6.0).abs() < 0.00000);
     }
 }
