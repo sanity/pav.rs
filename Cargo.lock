@@ -25,7 +25,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pav"
+name = "pav_regression"
 version = "0.1.0"
 dependencies = [
  "ordered-float",

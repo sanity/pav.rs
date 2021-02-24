@@ -1,12 +1,12 @@
 [package]
-name = "pav"
+name = "pav_regression"
 version = "0.1.0"
 authors = ["Ian Clarke <ian.clarke@gmail.com>"]
 edition = "2018"
 license-file = "LICENSE"
 
 [lib]
-name = "pav"
+name = "pav_regression"
 path = "src/lib.rs"
 
 [dependencies]
