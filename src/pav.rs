@@ -5,17 +5,16 @@ pub struct IsotonicRegression {
     mean_point: Point,
 }
 
-#[derive(Copy, Clone)]
 enum Direction {
     Ascending, Descending
 }
 
 impl IsotonicRegression {
-    pub fn newAscending(points : &Vec<Point>) -> IsotonicRegression {
+    pub fn new_ascending(points : &Vec<Point>) -> IsotonicRegression {
         IsotonicRegression::new(points, Direction::Ascending)
     }
 
-    pub fn newDescending(points : &Vec<Point>) -> IsotonicRegression {
+    pub fn new_descending(points : &Vec<Point>) -> IsotonicRegression {
         IsotonicRegression::new(points, Direction::Descending)
     }
 
@@ -194,7 +193,7 @@ mod tests {
     #[test]
     fn test_interpolate() {
         let regression =
-            IsotonicRegression::newAscending(&vec![Point { x: 1.0, y: 5.0 }, Point { x: 2.0, y: 7.0 }]);
+            IsotonicRegression::new_ascending(&vec![Point { x: 1.0, y: 5.0 }, Point { x: 2.0, y: 7.0 }]);
         assert_eq!(regression.interpolate(1.5), 6.0);
     }
 }
