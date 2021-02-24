@@ -42,7 +42,7 @@ Here is the relationship that PAV extracts from some very noisy input data where
 
 ## Features
 
-* Employs an isotonic spline algorithm for smooth interpolation
+* Smart linear interpolation between points and extrapolation outside the training data domain
 * Fairly efficient implementation without compromizing code readability
 * Will intelligently extrapolate to compute _y_ for values of _x_ greater or less than those used to build the PAV model
 
