@@ -26,7 +26,7 @@ impl IsotonicRegression {
             sum_x += point.x;
             sum_y += point.y;
         }
-
+        
         IsotonicRegression {
             points: isotonic(points, direction),
             mean_point: Point {
