@@ -1,4 +1,4 @@
-# Pair Adjacent Violators
+# Pair Adjacent Violators for Rust
 
 ## Overview
 
