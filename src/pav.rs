@@ -56,7 +56,7 @@ impl IsotonicRegression {
     }
 
     pub fn get_points(&self) -> &[Point] {
-        return &self.points;
+        &self.points
     }
 }
 
