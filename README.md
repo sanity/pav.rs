@@ -2,7 +2,7 @@
 
 ## Overview
 
-An implementation of the [Pair Adjacent Violators](http://gifi.stat.ucla.edu/janspubs/2009/reports/deleeuw_hornik_mair_R_09.pdf) algorithm for [isotonic regression](https://en.wikipedia.org/wiki/Isotonic_regression). Note this algorithm is also known as "Pool Adjacent Violators".
+An implementation of the [Pair Adjacent Violators](https://onlinelibrary.wiley.com/doi/pdf/10.1002/9781118763155.app3) algorithm for [isotonic regression](https://en.wikipedia.org/wiki/Isotonic_regression). Note this algorithm is also known as "Pool Adjacent Violators".
 
 ### What is "Isotonic Regression" and why should I care?
 
