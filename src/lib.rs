@@ -1,4 +1,6 @@
-//! [Pair Adjacent Violators](http://gifi.stat.ucla.edu/janspubs/2009/reports/deleeuw_hornik_mair_R_09.pdf) algorithm for
+#![warn(missing_docs)]
+
+//! [Pair Adjacent Violators](https://onlinelibrary.wiley.com/doi/pdf/10.1002/9781118763155.app3) algorithm for
 //! [isotonic regression](https://en.wikipedia.org/wiki/Isotonic_regression)
 //!
 //! # What is "Isotonic Regression" and why should I care?
@@ -36,4 +38,5 @@
 //! If you have an hour to spare, and are interested in learning more about how online advertising works - you should check out [this lecture](https://vimeo.com/137999578)
 //! that I gave in 2015 where I explain how we were able to use pair adjacent violators to solve some fun problems.
 
+/// Pair adjacent violators algorithm for isotonic regression
 pub mod pav;

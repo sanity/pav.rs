@@ -1,5 +1,7 @@
 use ordered_float::OrderedFloat;
 
+/// A vector of points forming an isotonic regression, along with the
+/// centroid point of the original set.
 pub struct IsotonicRegression {
     points: Vec<Point>,
     mean_point: Point,
@@ -11,10 +13,12 @@ enum Direction {
 }
 
 impl IsotonicRegression {
+    /// Find an ascending isotonic regression from a set of points
     pub fn new_ascending(points: &[Point]) -> IsotonicRegression {
         IsotonicRegression::new(points, Direction::Ascending)
     }
 
+    /// Find a descending isotonic regression from a set of points
     pub fn new_descending(points: &[Point]) -> IsotonicRegression {
         IsotonicRegression::new(points, Direction::Descending)
     }
@@ -37,6 +41,7 @@ impl IsotonicRegression {
         }
     }
 
+    /// Find the _y_ point at position `at_x`
     pub fn interpolate(&self, at_x: f64) -> f64 {
         let pos = self
             .points
@@ -55,14 +60,18 @@ impl IsotonicRegression {
         };
     }
 
+    /// Retrieve the points that make up the isotonic regression
     pub fn get_points(&self) -> &[Point] {
         &self.points
     }
 }
 
+/// A point in 2D cartesian space
 #[derive(Debug, PartialEq)]
 pub struct Point {
+    /// The x position of the point
     pub x: f64,
+    /// The y position of the point
     pub y: f64,
 }
 
