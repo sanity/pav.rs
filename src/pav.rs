@@ -4,7 +4,7 @@ use ordered_float::OrderedFloat;
 /// centroid point of the original set.
 pub struct IsotonicRegression {
     points: Vec<Point>,
-    mean_point: Point,
+    centroid_point: Point,
 }
 
 enum Direction {
@@ -34,7 +34,7 @@ impl IsotonicRegression {
 
         IsotonicRegression {
             points: isotonic(points, direction),
-            mean_point: Point {
+            centroid_point: Point {
                 x: sum_x / point_count,
                 y: sum_y / point_count,
             },
@@ -50,9 +50,9 @@ impl IsotonicRegression {
             Ok(ix) => self.points[ix].y,
             Err(ix) => {
                 if ix < 1 {
-                    interpolate_two_points(&self.points.first().unwrap(), &self.mean_point, at_x)
+                    interpolate_two_points(&self.points.first().unwrap(), &self.centroid_point, at_x)
                 } else if ix >= self.points.len() {
-                    interpolate_two_points(&self.mean_point, self.points.last().unwrap(), at_x)
+                    interpolate_two_points(&self.centroid_point, self.points.last().unwrap(), at_x)
                 } else {
                     interpolate_two_points(&self.points[ix - 1], &self.points[ix], at_x)
                 }
@@ -63,6 +63,11 @@ impl IsotonicRegression {
     /// Retrieve the points that make up the isotonic regression
     pub fn get_points(&self) -> &[Point] {
         &self.points
+    }
+
+    /// Retrieve the mean point of the original point set
+    pub fn get_centroid_point(&self) -> &Point {
+        &self.centroid_point
     }
 }
 
@@ -235,6 +240,7 @@ mod tests {
             Point { x: 1.0, y: 2.0 },
             Point { x: 2.0, y: -1.0 },
         ];
+        
         let regression = IsotonicRegression::new_ascending(points);
         assert_eq!(
             regression.get_points(),
