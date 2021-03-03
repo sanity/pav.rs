@@ -34,10 +34,7 @@ impl IsotonicRegression {
 
         IsotonicRegression {
             points: isotonic(points, direction),
-            centroid_point: Point {
-                x: sum_x / point_count,
-                y: sum_y / point_count,
-            },
+            centroid_point: Point::new(sum_x / point_count, sum_y / point_count),
         }
     }
 
@@ -50,7 +47,11 @@ impl IsotonicRegression {
             Ok(ix) => self.points[ix].y,
             Err(ix) => {
                 if ix < 1 {
-                    interpolate_two_points(&self.points.first().unwrap(), &self.centroid_point, at_x)
+                    interpolate_two_points(
+                        &self.points.first().unwrap(),
+                        &self.centroid_point,
+                        at_x,
+                    )
                 } else if ix >= self.points.len() {
                     interpolate_two_points(&self.centroid_point, self.points.last().unwrap(), at_x)
                 } else {
@@ -72,45 +73,48 @@ impl IsotonicRegression {
 }
 
 /// A point in 2D cartesian space
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Point {
-    /// The x position of the point
-    pub x: f64,
-    /// The y position of the point
-    pub y: f64,
-}
-
-impl Point {
-    fn as_weighted_point(&self) -> WeightedPoint {
-        WeightedPoint {
-            x: self.x,
-            y: self.y,
-            weight: 1.0,
-        }
-    }
-}
-
-#[derive(Clone, Copy)]
-struct WeightedPoint {
     x: f64,
     y: f64,
     weight: f64,
 }
 
-impl WeightedPoint {
-    fn merge_with(&mut self, other: &WeightedPoint) {
+impl Point {
+    /// Create a new Point
+    pub fn new(x: f64, y: f64) -> Point {
+        Point { x, y, weight: 1.0 }
+    }
+
+    /// Create a new Point with a specified weight
+    pub fn new_with_weight(x: f64, y: f64, weight: f64) -> Point {
+        Point { x, y, weight }
+    }
+
+    // Use getters because modifying points that are part of a regression will have unpredictable
+    // results.
+
+    /// The x position of the point
+    pub fn x(&self) -> f64 {
+        self.x
+    }
+
+    /// The y position of the point
+    pub fn y(&self) -> f64 {
+        self.y
+    }
+
+    /// The weight of the point (initially 1.0)
+    pub fn weight(&self) -> f64 {
+        self.weight
+    }
+
+    fn merge_with(&mut self, other: &Point) {
         self.x = ((self.x * self.weight) + (other.x * other.weight)) / (self.weight + other.weight);
 
         self.y = ((self.y * self.weight) + (other.y * other.weight)) / (self.weight + other.weight);
 
         self.weight += other.weight;
-    }
-
-    fn as_point(&self) -> Point {
-        Point {
-            x: self.x,
-            y: self.y,
-        }
     }
 }
 
@@ -120,10 +124,10 @@ fn interpolate_two_points(a: &Point, b: &Point, at_x: f64) -> f64 {
 }
 
 fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
-    let mut weighted_points: Vec<WeightedPoint> =
-        points.iter().map(|p| p.as_weighted_point()).collect();
+    let mut merged_points: Vec<Point> =
+        points.iter().copied().collect();
 
-    weighted_points.sort_by_key(|point| {
+    merged_points.sort_by_key(|point| {
         OrderedFloat(match direction {
             Direction::Ascending => point.x,
             Direction::Descending => -point.x,
@@ -136,12 +140,12 @@ fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
         Direction::Descending => true,
     };
 
-    let mut iso_points: Vec<WeightedPoint> = Vec::new();
-    for weighted_point in &mut weighted_points.iter() {
-        if iso_points.is_empty() || (dir_bool ^ (weighted_point.y > iso_points.last().unwrap().y)) {
-            iso_points.push(*weighted_point)
+    let mut iso_points: Vec<Point> = Vec::new();
+    for point in &mut merged_points.iter() {
+        if iso_points.is_empty() || (dir_bool ^ (point.y > iso_points.last().unwrap().y)) {
+            iso_points.push(*point)
         } else {
-            let mut new_point = *weighted_point;
+            let mut new_point = *point;
             loop {
                 if iso_points.is_empty()
                     || (dir_bool ^ (iso_points.last().unwrap().y < (new_point).y))
@@ -156,7 +160,7 @@ fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
         }
     }
 
-    return iso_points.iter().map(|pw| pw.as_point()).collect();
+    return iso_points.iter().copied().collect();
 }
 
 #[cfg(test)]
@@ -171,10 +175,10 @@ mod tests {
     #[test]
     fn isotonic_one_point() {
         assert_eq!(
-            isotonic(&[Point { x: 1.0, y: 2.0 }], Direction::Ascending)
+            isotonic(&[Point::new(1.0, 2.0 )], Direction::Ascending)
                 .pop()
                 .unwrap(),
-            Point { x: 1.0, y: 2.0 }
+            Point::new(1.0, 2.0)
         );
     }
 
@@ -182,12 +186,12 @@ mod tests {
     fn isotonic_simple_merge() {
         assert_eq!(
             isotonic(
-                &[Point { x: 1.0, y: 2.0 }, Point { x: 2.0, y: 0.0 }],
+                &[Point::new(1.0, 2.0), Point::new(2.0, 0.0)],
                 Direction::Ascending
             )
             .pop()
             .unwrap(),
-            Point { x: 1.5, y: 1.0 }
+            Point::new_with_weight(1.5, 1.0, 2.0)
         );
     }
 
@@ -196,13 +200,13 @@ mod tests {
         assert_eq!(
             isotonic(
                 &[
-                    Point { x: 0.5, y: -0.5 },
-                    Point { x: 1.0, y: 2.0 },
-                    Point { x: 2.0, y: 0.0 }
+                    Point::new(0.5, -0.5),
+                    Point::new(1.0, 2.0),
+                    Point::new(2.0, 0.0),
                 ],
                 Direction::Ascending
             ),
-            [Point { x: 0.5, y: -0.5 }, Point { x: 1.5, y: 1.0 }]
+            [Point::new(0.5, -0.5), Point::new_with_weight(1.5, 1.0, 2.0)]
         );
     }
 
@@ -211,24 +215,21 @@ mod tests {
         assert_eq!(
             isotonic(
                 &[
-                    Point { x: 0.0, y: 1.0 },
-                    Point { x: 1.0, y: 2.0 },
-                    Point { x: 2.0, y: -1.0 }
+                    Point::new(0.0, 1.0),
+                    Point::new(1.0, 2.0),
+                    Point::new(2.0, -1.0),
                 ],
                 Direction::Ascending
             ),
-            [Point {
-                x: 1.0,
-                y: 2.0 / 3.0
-            }]
+            [Point::new_with_weight(1.0, 2.0 / 3.0, 3.0)]
         );
     }
 
     #[test]
     fn test_interpolate() {
         let regression = IsotonicRegression::new_ascending(&[
-            Point { x: 1.0, y: 5.0 },
-            Point { x: 2.0, y: 7.0 },
+            Point::new(1.0, 5.0),
+            Point::new(2.0, 7.0),
         ]);
         assert!((regression.interpolate(1.5) - 6.0).abs() < f64::EPSILON);
     }
@@ -236,32 +237,33 @@ mod tests {
     #[test]
     fn test_isotonic_ascending() {
         let points = &[
-            Point { x: 0.0, y: 1.0 },
-            Point { x: 1.0, y: 2.0 },
-            Point { x: 2.0, y: -1.0 },
+            Point::new(0.0, 1.0),
+            Point::new(1.0, 2.0),
+            Point::new(2.0, -1.0),
         ];
-        
+
         let regression = IsotonicRegression::new_ascending(points);
         assert_eq!(
             regression.get_points(),
-            &[Point {
-                x: (0.0 + 1.0 + 2.0) / 3.0,
-                y: (1.0 + 2.0 - 1.0) / 3.0
-            }]
+            &[Point::new_with_weight(
+                (0.0 + 1.0 + 2.0) / 3.0,
+                (1.0 + 2.0 - 1.0) / 3.0,
+                3.0
+            )]
         )
     }
 
     #[test]
     fn test_isotonic_descending() {
         let points = &[
-            Point { x: 0.0, y: -1.0 },
-            Point { x: 1.0, y: 2.0 },
-            Point { x: 2.0, y: 1.0 },
+            Point::new(0.0, -1.0),
+            Point::new(1.0, 2.0),
+            Point::new(2.0, 1.0),
         ];
         let regression = IsotonicRegression::new_descending(points);
         assert_eq!(
             regression.get_points(),
-            &[Point { x: 1.5, y: 1.5 }, Point { x: 0.0, y: -1.0 }]
+            &[Point::new_with_weight(1.5, 1.5, 2.0), Point::new(0.0, -1.0)]
         )
     }
 }
