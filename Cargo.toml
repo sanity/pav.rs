@@ -1,8 +1,8 @@
 [package]
 name = "pav_regression"
 description = "The pair adjacent violators algorithm for isotonic regression"
-homepage = "https://github.com/sanity/pair_adjacent_violators"
-repository = "https://github.com/sanity/pair_adjacent_violators"
+homepage = "https://github.com/sanity/pav.rs"
+repository = "https://github.com/sanity/pav.rs"
 version = "0.2.0"
 authors = ["Ian Clarke <ian@locut.us>"]
 edition = "2018"
