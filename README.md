@@ -1,5 +1,7 @@
 # Pair Adjacent Violators for Rust
 
+[![Rust](https://github.com/sanity/pav.rs/actions/workflows/rust.yml/badge.svg)](https://github.com/sanity/pav.rs/actions/workflows/rust.yml)
+
 ## Overview
 
 An implementation of the [Pair Adjacent Violators](https://onlinelibrary.wiley.com/doi/pdf/10.1002/9781118763155.app3) algorithm for [isotonic regression](https://en.wikipedia.org/wiki/Isotonic_regression). Note this algorithm is also known as "Pool Adjacent Violators".
