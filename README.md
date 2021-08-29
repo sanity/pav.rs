@@ -1,6 +1,7 @@
 # Pair Adjacent Violators for Rust
 
-[![Rust](https://github.com/sanity/pav.rs/actions/workflows/rust.yml/badge.svg)](https://github.com/sanity/pav.rs/actions/workflows/rust.yml)
+[![Rust](https://github.com/sanity/pav.rs/actions/workflows/rust.yml/badge.svg)](https://github.com/sanity/pav.rs/actions/workflows/rust.yml) ![crates.io](https://img.shields.io/crates/v/pav_regression.svg)
+
 
 ## Overview
 
