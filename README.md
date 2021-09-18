@@ -1,5 +1,8 @@
 # Pair Adjacent Violators for Rust
 
+[![Rust](https://github.com/sanity/pav.rs/actions/workflows/rust.yml/badge.svg)](https://github.com/sanity/pav.rs/actions/workflows/rust.yml) [![crates.io](https://img.shields.io/crates/v/pav_regression.svg)](https://crates.io/crates/pav_regression)
+
+
 ## Overview
 
 An implementation of the [Pair Adjacent Violators](https://onlinelibrary.wiley.com/doi/pdf/10.1002/9781118763155.app3) algorithm for [isotonic regression](https://en.wikipedia.org/wiki/Isotonic_regression). Note this algorithm is also known as "Pool Adjacent Violators".
@@ -46,6 +49,9 @@ Here is the relationship that PAV extracts from some very noisy input data where
 * Fairly efficient implementation without compromizing code readability
 * Will intelligently extrapolate to compute _y_ for values of _x_ greater or less than those used to build the PAV model
 
-### License
+## License
 Released under the [LGPL](https://en.wikipedia.org/wiki/GNU_Lesser_General_Public_License) version 3 by [Ian Clarke](http://blog.locut.us/).
 
+## See also
+
+* An earlier implementation of PAV for Kotlin/JVM by the same author: https://github.com/sanity/pairAdjacentViolators

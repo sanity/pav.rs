@@ -24,12 +24,12 @@ impl IsotonicRegression {
     }
 
     fn new(points: &[Point], direction: Direction) -> IsotonicRegression {
-        let point_count: f64 = points.len() as f64;
+        let point_count: f64 = points.iter().map(|p| p.weight).sum();
         let mut sum_x: f64 = 0.0;
         let mut sum_y: f64 = 0.0;
         for point in points {
-            sum_x += point.x;
-            sum_y += point.y;
+            sum_x += point.x * point.weight;
+            sum_y += point.y * point.weight;
         }
 
         IsotonicRegression {
