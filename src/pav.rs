@@ -50,12 +50,12 @@ impl IsotonicRegression {
                     interpolate_two_points(
                         &self.points.first().unwrap(),
                         &self.centroid_point,
-                        at_x,
+                        &at_x,
                     )
                 } else if ix >= self.points.len() {
-                    interpolate_two_points(&self.centroid_point, self.points.last().unwrap(), at_x)
+                    interpolate_two_points(&self.centroid_point, self.points.last().unwrap(), &at_x)
                 } else {
-                    interpolate_two_points(&self.points[ix - 1], &self.points[ix], at_x)
+                    interpolate_two_points(&self.points[ix - 1], &self.points[ix], &at_x)
                 }
             }
         };
@@ -118,7 +118,7 @@ impl Point {
     }
 }
 
-fn interpolate_two_points(a: &Point, b: &Point, at_x: f64) -> f64 {
+fn interpolate_two_points(a: &Point, b: &Point, at_x: &f64) -> f64 {
     let prop = (at_x - (a.x)) / (b.x - a.x);
     (b.y - a.y) * prop + a.y
 }
