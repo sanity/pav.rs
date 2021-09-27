@@ -130,7 +130,7 @@ fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
         match direction {
         Direction::Ascending => points.iter().copied().collect(),
         Direction::Descending => points.iter()
-            .map(|p| Point {x : p.x, y : -p.y, weight : p.weight}).collect(),
+            .map(|p| Point {y : -p.y, ..*p}).collect(),
         };
 
     merged_points.sort_by_key(|point| OrderedFloat(point.x));
@@ -157,7 +157,7 @@ fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
 
     return match direction {
         Direction::Ascending => iso_points.iter().copied().collect(),
-        Direction::Descending => iso_points.iter().map(|p| Point {x : p.x, y : -p.y, weight : p.weight}).collect(),
+        Direction::Descending => iso_points.iter().map(|p| Point {y : -p.y, ..*p}).collect(),
     }
 }
 
