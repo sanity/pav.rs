@@ -3,7 +3,7 @@ use ordered_float::OrderedFloat;
 /// A vector of points forming an isotonic regression, along with the
 /// centroid point of the original set.
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IsotonicRegression {
     points: Vec<Point>,
     centroid_point: Point,
