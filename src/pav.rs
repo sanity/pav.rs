@@ -2,6 +2,8 @@ use ordered_float::OrderedFloat;
 
 /// A vector of points forming an isotonic regression, along with the
 /// centroid point of the original set.
+
+#[derive(Debug)]
 pub struct IsotonicRegression {
     points: Vec<Point>,
     centroid_point: Point,
@@ -125,30 +127,23 @@ fn interpolate_two_points(a: &Point, b: &Point, at_x: &f64) -> f64 {
 
 fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
     let mut merged_points: Vec<Point> =
-        points.iter().copied().collect();
+        match direction {
+        Direction::Ascending => points.iter().copied().collect(),
+        Direction::Descending => points.iter()
+            .map(|p| Point {x : p.x, y : -p.y, weight : p.weight}).collect(),
+        };
 
-    merged_points.sort_by_key(|point| {
-        OrderedFloat(match direction {
-            Direction::Ascending => point.x,
-            Direction::Descending => -point.x,
-        })
-    });
-
-    // By xoring it this will effectively invert the conditional
-    let dir_bool = match direction {
-        Direction::Ascending => false,
-        Direction::Descending => true,
-    };
+    merged_points.sort_by_key(|point| OrderedFloat(point.x));
 
     let mut iso_points: Vec<Point> = Vec::new();
     for point in &mut merged_points.iter() {
-        if iso_points.is_empty() || (dir_bool ^ (point.y > iso_points.last().unwrap().y)) {
+        if iso_points.is_empty() || (point.y > iso_points.last().unwrap().y) {
             iso_points.push(*point)
         } else {
             let mut new_point = *point;
             loop {
                 if iso_points.is_empty()
-                    || (dir_bool ^ (iso_points.last().unwrap().y < (new_point).y))
+                    || (iso_points.last().unwrap().y < (new_point).y)
                 {
                     iso_points.push(new_point);
                     break;
@@ -160,7 +155,10 @@ fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
         }
     }
 
-    return iso_points.iter().copied().collect();
+    return match direction {
+        Direction::Ascending => iso_points.iter().copied().collect(),
+        Direction::Descending => iso_points.iter().map(|p| Point {x : p.x, y : -p.y, weight : p.weight}).collect(),
+    }
 }
 
 #[cfg(test)]
@@ -263,7 +261,19 @@ mod tests {
         let regression = IsotonicRegression::new_descending(points);
         assert_eq!(
             regression.get_points(),
-            &[Point::new_with_weight(1.5, 1.5, 2.0), Point::new(0.0, -1.0)]
+            &[Point::new_with_weight(1.0, 2.0/3.0, 3.0)]
         )
+    }
+
+    #[test]
+    fn test_descending_interpolation() {
+        let regression = IsotonicRegression::new_descending(
+            &[
+                Point::new(0.0, 3.0),
+                Point::new(1.0, 2.0),
+                Point::new(2.0, 1.0)
+            ]
+    );
+    assert_eq!(regression.interpolate(0.5), 2.5);
     }
 }
