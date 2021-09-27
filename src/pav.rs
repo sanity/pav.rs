@@ -156,7 +156,7 @@ fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
     }
 
     return match direction {
-        Direction::Ascending => iso_points.iter().copied().collect(),
+        Direction::Ascending => iso_points,
         Direction::Descending => iso_points.iter().map(|p| Point {y : -p.y, ..*p}).collect(),
     }
 }
