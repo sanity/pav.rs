@@ -26,6 +26,7 @@ impl IsotonicRegression {
     }
 
     fn new(points: &[Point], direction: Direction) -> IsotonicRegression {
+        assert!(points.len() > 0, "points is empty, can't create regression");
         let point_count: f64 = points.iter().map(|p| p.weight).sum();
         let mut sum_x: f64 = 0.0;
         let mut sum_y: f64 = 0.0;
@@ -42,25 +43,33 @@ impl IsotonicRegression {
 
     /// Find the _y_ point at position `at_x`
     pub fn interpolate(&self, at_x: f64) -> f64 {
-        let pos = self
-            .points
-            .binary_search_by_key(&OrderedFloat(at_x), |p| OrderedFloat(p.x));
-        return match pos {
-            Ok(ix) => self.points[ix].y,
-            Err(ix) => {
-                if ix < 1 {
-                    interpolate_two_points(
-                        &self.points.first().unwrap(),
-                        &self.centroid_point,
-                        &at_x,
-                    )
-                } else if ix >= self.points.len() {
-                    interpolate_two_points(&self.centroid_point, self.points.last().unwrap(), &at_x)
-                } else {
-                    interpolate_two_points(&self.points[ix - 1], &self.points[ix], &at_x)
+        if self.points.len() == 1 {
+            return self.points[0].y;
+        } else {
+            let pos = self
+                .points
+                .binary_search_by_key(&OrderedFloat(at_x), |p| OrderedFloat(p.x));
+            return match pos {
+                Ok(ix) => self.points[ix].y,
+                Err(ix) => {
+                    if ix < 1 {
+                        interpolate_two_points(
+                            &self.points.first().unwrap(),
+                            &self.centroid_point,
+                            &at_x,
+                        )
+                    } else if ix >= self.points.len() {
+                        interpolate_two_points(
+                            &self.centroid_point,
+                            self.points.last().unwrap(),
+                            &at_x,
+                        )
+                    } else {
+                        interpolate_two_points(&self.points[ix - 1], &self.points[ix], &at_x)
+                    }
                 }
-            }
-        };
+            };
+        }
     }
 
     /// Retrieve the points that make up the isotonic regression
@@ -126,12 +135,10 @@ fn interpolate_two_points(a: &Point, b: &Point, at_x: &f64) -> f64 {
 }
 
 fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
-    let mut merged_points: Vec<Point> =
-        match direction {
+    let mut merged_points: Vec<Point> = match direction {
         Direction::Ascending => points.iter().copied().collect(),
-        Direction::Descending => points.iter()
-            .map(|p| Point {y : -p.y, ..*p}).collect(),
-        };
+        Direction::Descending => points.iter().map(|p| Point { y: -p.y, ..*p }).collect(),
+    };
 
     merged_points.sort_by_key(|point| OrderedFloat(point.x));
 
@@ -142,9 +149,7 @@ fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
         } else {
             let mut new_point = *point;
             loop {
-                if iso_points.is_empty()
-                    || (iso_points.last().unwrap().y < (new_point).y)
-                {
+                if iso_points.is_empty() || (iso_points.last().unwrap().y < (new_point).y) {
                     iso_points.push(new_point);
                     break;
                 } else {
@@ -157,10 +162,8 @@ fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
 
     return match direction {
         Direction::Ascending => iso_points,
-        Direction::Descending => iso_points.iter()
-                                    .map(|p| Point {y : -p.y, ..*p})
-                                    .collect(),
-    }
+        Direction::Descending => iso_points.iter().map(|p| Point { y: -p.y, ..*p }).collect(),
+    };
 }
 
 #[cfg(test)]
@@ -175,7 +178,7 @@ mod tests {
     #[test]
     fn isotonic_one_point() {
         assert_eq!(
-            isotonic(&[Point::new(1.0, 2.0 )], Direction::Ascending)
+            isotonic(&[Point::new(1.0, 2.0)], Direction::Ascending)
                 .pop()
                 .unwrap(),
             Point::new(1.0, 2.0)
@@ -227,10 +230,8 @@ mod tests {
 
     #[test]
     fn test_interpolate() {
-        let regression = IsotonicRegression::new_ascending(&[
-            Point::new(1.0, 5.0),
-            Point::new(2.0, 7.0),
-        ]);
+        let regression =
+            IsotonicRegression::new_ascending(&[Point::new(1.0, 5.0), Point::new(2.0, 7.0)]);
         assert!((regression.interpolate(1.5) - 6.0).abs() < f64::EPSILON);
     }
 
@@ -263,19 +264,25 @@ mod tests {
         let regression = IsotonicRegression::new_descending(points);
         assert_eq!(
             regression.get_points(),
-            &[Point::new_with_weight(1.0, 2.0/3.0, 3.0)]
+            &[Point::new_with_weight(1.0, 2.0 / 3.0, 3.0)]
         )
     }
 
     #[test]
     fn test_descending_interpolation() {
-        let regression = IsotonicRegression::new_descending(
-            &[
-                Point::new(0.0, 3.0),
-                Point::new(1.0, 2.0),
-                Point::new(2.0, 1.0)
-            ]
-    );
-    assert_eq!(regression.interpolate(0.5), 2.5);
+        let regression = IsotonicRegression::new_descending(&[
+            Point::new(0.0, 3.0),
+            Point::new(1.0, 2.0),
+            Point::new(2.0, 1.0),
+        ]);
+        assert_eq!(regression.interpolate(0.5), 2.5);
+    }
+
+    #[test]
+    fn test_single_point_regression() {
+        let regression = IsotonicRegression::new_ascending(&[
+            Point::new(1.0, 3.0),
+        ]);
+        assert_eq!(regression.interpolate(0.0), 3.0);
     }
 }
