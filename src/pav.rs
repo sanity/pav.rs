@@ -42,13 +42,13 @@ impl IsotonicRegression {
     }
 
     /// Find the _y_ point at position `at_x`
-    pub fn interpolate(&self, at_x: &f64) -> f64 {
+    pub fn interpolate(&self, at_x: f64) -> f64 {
         if self.points.len() == 1 {
             return self.points[0].y;
         } else {
             let pos = self
                 .points
-                .binary_search_by_key(&OrderedFloat(*at_x), |p| OrderedFloat(p.x));
+                .binary_search_by_key(&OrderedFloat(at_x), |p| OrderedFloat(p.x));
             return match pos {
                 Ok(ix) => self.points[ix].y,
                 Err(ix) => {
