@@ -285,4 +285,12 @@ mod tests {
         ]);
         assert_eq!(regression.interpolate(0.0), 3.0);
     }
+
+    #[test]
+    fn test_point_accessors() {
+        let point = Point { x: 1.0, y: 2.0 , weight : 3.0};
+        assert_eq!(point.x(), 1.0);
+        assert_eq!(point.y(), 2.0);
+        assert_eq!(point.weight(), 3.0);
+    }
 }
