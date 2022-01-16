@@ -171,6 +171,20 @@ mod tests {
     use super::*;
 
     #[test]
+    fn usage_example() {
+        let points = &[
+            Point::new(0.0, 1.0),
+            Point::new(1.0, 2.0),
+            Point::new(2.0, 1.5),
+        ];
+
+        let regression = IsotonicRegression::new_ascending(points);
+        assert_eq!(
+            regression.interpolate(1.5), 1.75
+        );
+    }
+
+    #[test]
     fn isotonic_no_points() {
         assert_eq!(isotonic(&[], Direction::Ascending).is_empty(), true);
     }

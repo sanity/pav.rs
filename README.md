@@ -51,6 +51,23 @@ Here is the relationship that PAV extracts from some very noisy input data where
 
 ## Usage examples
 
+```rust
+    use pav_regression::pav::IsotonicRegression;
+
+    // ..
+
+    let points = &[
+        Point::new(0.0, 1.0),
+        Point::new(1.0, 2.0),
+        Point::new(2.0, 1.5),
+    ];
+
+    let regression = IsotonicRegression::new_ascending(points);
+    assert_eq!(
+        regression.interpolate(1.5), 1.75
+    );
+```
+
 See the [unit tests](https://github.com/sanity/pav.rs/blob/master/src/pav.rs#L170).
 
 ## License
