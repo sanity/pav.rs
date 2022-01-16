@@ -52,7 +52,7 @@ Here is the relationship that PAV extracts from some very noisy input data where
 ## Usage example
 
 ```rust
-    use pav_regression::pav::IsotonicRegression;
+    use pav_regression::pav::{IsotonicRegression, Point};
 
     // ..
 
