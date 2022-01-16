@@ -49,6 +49,10 @@ Here is the relationship that PAV extracts from some very noisy input data where
 * Fairly efficient implementation without compromizing code readability
 * Will intelligently extrapolate to compute _y_ for values of _x_ greater or less than those used to build the PAV model
 
+## Usage examples
+
+See the [unit tests](https://github.com/sanity/pav.rs/blob/master/src/pav.rs#L170).
+
 ## License
 Released under the [LGPL](https://en.wikipedia.org/wiki/GNU_Lesser_General_Public_License) version 3 by [Ian Clarke](http://blog.locut.us/).
 
