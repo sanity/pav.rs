@@ -18,7 +18,7 @@ impl IsotonicRegression {
     /// Find an ascending isotonic regression from a set of points
     pub fn new_ascending(points: &[Point]) -> IsotonicRegression {
         IsotonicRegression::new(points, Direction::Ascending)
-    }
+    } 
 
     /// Find a descending isotonic regression from a set of points
     pub fn new_descending(points: &[Point]) -> IsotonicRegression {
@@ -26,7 +26,7 @@ impl IsotonicRegression {
     }
 
     fn new(points: &[Point], direction: Direction) -> IsotonicRegression {
-        assert!(points.len() > 0, "points is empty, can't create regression");
+        assert!(!points.is_empty(), "points is empty, can't create regression");
         let point_count: f64 = points.iter().map(|p| p.weight).sum();
         let mut sum_x: f64 = 0.0;
         let mut sum_y: f64 = 0.0;
@@ -44,7 +44,7 @@ impl IsotonicRegression {
     /// Find the _y_ point at position `at_x`
     pub fn interpolate(&self, at_x: f64) -> f64 {
         if self.points.len() == 1 {
-            return self.points[0].y;
+            self.points[0].y
         } else {
             let pos = self
                 .points
@@ -54,7 +54,7 @@ impl IsotonicRegression {
                 Err(ix) => {
                     if ix < 1 {
                         interpolate_two_points(
-                            &self.points.first().unwrap(),
+                            self.points.first().unwrap(),
                             &self.centroid_point,
                             &at_x,
                         )
@@ -136,7 +136,7 @@ fn interpolate_two_points(a: &Point, b: &Point, at_x: &f64) -> f64 {
 
 fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
     let mut merged_points: Vec<Point> = match direction {
-        Direction::Ascending => points.iter().copied().collect(),
+        Direction::Ascending => points.to_vec(),
         Direction::Descending => points.iter().map(|p| Point { y: -p.y, ..*p }).collect(),
     };
 
@@ -186,7 +186,7 @@ mod tests {
 
     #[test]
     fn isotonic_no_points() {
-        assert_eq!(isotonic(&[], Direction::Ascending).is_empty(), true);
+        assert!(isotonic(&[], Direction::Ascending).is_empty());
     }
 
     #[test]
