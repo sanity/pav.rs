@@ -16,4 +16,4 @@ name = "pav_regression"
 path = "src/lib.rs"
 
 [dependencies]
-ordered-float = "2.8.0"
+ordered-float = "3.4.0"
