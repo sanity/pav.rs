@@ -5,10 +5,12 @@ use ordered_float::OrderedFloat;
 
 #[derive(Debug, Clone)]
 pub struct IsotonicRegression {
+    direction : Direction,
     points: Vec<Point>,
     centroid_point: Point,
 }
 
+#[derive(Debug, Clone)]
 enum Direction {
     Ascending,
     Descending,
@@ -36,6 +38,7 @@ impl IsotonicRegression {
         }
 
         IsotonicRegression {
+            direction : direction.clone(),
             points: isotonic(points, direction),
             centroid_point: Point::new(sum_x / point_count, sum_y / point_count),
         }
@@ -80,6 +83,13 @@ impl IsotonicRegression {
     /// Retrieve the mean point of the original point set
     pub fn get_centroid_point(&self) -> &Point {
         &self.centroid_point
+    }
+
+    /// Add new points to the regression
+    pub fn add_points(&mut self, points: &[Point]) {
+        let mut new_points = self.points.clone();
+        new_points.extend_from_slice(points);
+        self.points = isotonic(&new_points, self.direction.clone());
     }
 }
 
@@ -127,6 +137,7 @@ impl Point {
 
         self.weight += other.weight;
     }
+
 }
 
 fn interpolate_two_points(a: &Point, b: &Point, at_x: &f64) -> f64 {
@@ -140,7 +151,18 @@ fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
         Direction::Descending => points.iter().map(|p| Point { y: -p.y, ..*p }).collect(),
     };
 
-    merged_points.sort_by_key(|point| OrderedFloat(point.x));
+    // Sort the points by x, and if x is equal, sort by y descending to ensure that points with the same x
+    // get merged.
+    merged_points.sort_by(|a, b| {
+        let x_ordering = a.x.partial_cmp(&b.x).unwrap_or(std::cmp::Ordering::Equal);
+
+        if x_ordering == std::cmp::Ordering::Equal {
+            // If x values are equal, sort by y descending.
+            b.y.partial_cmp(&a.y).unwrap_or(std::cmp::Ordering::Equal)
+        } else {
+            x_ordering
+        }
+    });
 
     let mut iso_points: Vec<Point> = Vec::new();
     for point in &mut merged_points.iter() {
@@ -307,4 +329,78 @@ mod tests {
         assert_eq!(point.y(), 2.0);
         assert_eq!(point.weight(), 3.0);
     }
+
+    #[test]
+    fn test_add_points_1() {
+        let points = &[
+            Point::new(0.0, 1.0),
+        ];
+
+        let mut regression = IsotonicRegression::new_ascending(points);
+
+        regression.add_points(&[
+                        Point::new(1.0, 2.0),
+        ]);
+
+        assert_eq!(
+            regression.get_points(),
+            &[Point::new_with_weight(
+                0.0,
+                1.0,
+                1.0
+            ),
+            Point::new_with_weight(
+                1.0,
+                2.0,
+                1.0
+            ),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_add_points_2() {
+        let points = &[
+            Point::new(1.0, 2.0),
+        ];
+
+        let mut regression = IsotonicRegression::new_ascending(points);
+
+        regression.add_points(&[
+                        Point::new(0.0, 3.0),
+        ]);
+
+        assert_eq!(
+            regression.get_points(),
+            &[
+            Point::new_with_weight(
+                0.5,
+                2.5,
+                2.0
+            ),
+            ]
+        );
+    }
+
+    #[test]
+fn test_add_equal_x() {
+    let points = &[
+        Point::new(0.0, 1.0),
+    ];
+
+    let mut regression = IsotonicRegression::new_ascending(points);
+
+    regression.add_points(&[
+        Point::new(0.0, 2.0),
+    ]);
+
+    assert_eq!(
+        regression.get_points(),
+        &[Point::new_with_weight(
+            0.0,
+            1.5,
+            2.0
+        )]
+    );
+}
 }
