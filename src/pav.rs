@@ -418,9 +418,9 @@ mod tests {
 
     // This test generates 100 points at random, it then creates a regression with these points.
     // It then creates a second regression with 50 points, and adds the other 50 points to it.
-    // It then checks that the two regressions are the same.
+    // It then checks that the two regression centroids are the same.
     #[test]
-    fn test_add_points_random() {
+    fn test_add_points_random_centroids() {
         let mut rng = rand::thread_rng();
         let mut points = Vec::new();
         for _ in 0..100 {
