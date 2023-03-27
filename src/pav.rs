@@ -101,6 +101,17 @@ impl IsotonicRegression {
         new_points.extend_from_slice(points);
         self.points = isotonic(&new_points, self.direction.clone());
     }
+
+    /// How many points?
+    pub fn len(&self) -> usize {
+        self.centroid_point.weight as usize
+    }
+
+    /// Are there any points?
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.centroid_point.weight == 0.0
+    }
 }
 
 /// A point in 2D cartesian space
