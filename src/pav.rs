@@ -1,13 +1,31 @@
+use std::fmt::{Display, Formatter};
+
 use ordered_float::OrderedFloat;
 
 /// A vector of points forming an isotonic regression, along with the
 /// centroid point of the original set.
 
+
 #[derive(Debug, Clone)]
 pub struct IsotonicRegression {
-    direction : Direction,
+    direction: Direction,
     points: Vec<Point>,
-    centroid_point: Point,
+    centroid_point: Centroid,
+}
+
+/// A point in 2D cartesian space
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub struct Point {
+    x: f64,
+    y: f64,
+    weight: f64,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+struct Centroid {
+    sum_x: f64,
+    sum_y: f64,
+    sum_weight: f64,
 }
 
 #[derive(Debug, Clone)]
@@ -15,6 +33,27 @@ enum Direction {
     Ascending,
     Descending,
 }
+
+impl Display for IsotonicRegression {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "IsotonicRegression {{")?;
+        writeln!(f, "\tdirection: {:?},", self.direction)?;
+        writeln!(f, "\tpoints:")?;
+        for point in &self.points {
+            writeln!(f, "\t\t{:.2}\t{:.2}\t{:.2}", point.x, point.y, point.weight)?;
+        }
+        writeln!(f, "\tcentroid_point:")?;
+        writeln!(
+            f,
+            "\t\t{:.2}\t{:.2}\t{:.2}",
+            self.centroid_point.sum_x,
+            self.centroid_point.sum_y,
+            self.centroid_point.sum_weight
+        )?;
+        write!(f, "}}")
+    }
+}
+
 
 impl IsotonicRegression {
     /// Find an ascending isotonic regression from a set of points
@@ -29,7 +68,7 @@ impl IsotonicRegression {
 
     fn new(points: &[Point], direction: Direction) -> IsotonicRegression {
         assert!(!points.is_empty(), "points is empty, can't create regression");
-        let point_count: f64 = points.iter().map(|p| p.weight).sum();
+        let point_count: f64 = points.iter().map(Point::weight).sum();
         let mut sum_x: f64 = 0.0;
         let mut sum_y: f64 = 0.0;
         for point in points {
@@ -40,7 +79,7 @@ impl IsotonicRegression {
         IsotonicRegression {
             direction : direction.clone(),
             points: isotonic(points, direction),
-            centroid_point: Point::new_with_weight(sum_x, sum_y, point_count),
+            centroid_point: Centroid { sum_x, sum_y, sum_weight : point_count } ,
         }
     }
 
@@ -52,26 +91,26 @@ impl IsotonicRegression {
             let pos = self
                 .points
                 .binary_search_by_key(&OrderedFloat(at_x), |p| OrderedFloat(p.x));
-            return match pos {
+            match pos {
                 Ok(ix) => self.points[ix].y,
                 Err(ix) => {
                     if ix < 1 {
                         interpolate_two_points(
                             self.points.first().unwrap(),
                             &self.get_centroid_point(),
-                            &at_x,
+                            at_x,
                         )
                     } else if ix >= self.points.len() {
                         interpolate_two_points(
                             &self.get_centroid_point(),
                             self.points.last().unwrap(),
-                            &at_x,
+                            at_x,
                         )
                     } else {
-                        interpolate_two_points(&self.points[ix - 1], &self.points[ix], &at_x)
+                        interpolate_two_points(&self.points[ix - 1], &self.points[ix], at_x)
                     }
                 }
-            };
+            }
         }
     }
 
@@ -83,8 +122,8 @@ impl IsotonicRegression {
     /// Retrieve the mean point of the original point set
     pub fn get_centroid_point(&self) -> Point {
         Point {
-            x: self.centroid_point.x / self.centroid_point.weight,
-            y: self.centroid_point.y / self.centroid_point.weight,
+            x: self.centroid_point.sum_x / self.centroid_point.sum_weight,
+            y: self.centroid_point.sum_y / self.centroid_point.sum_weight,
             weight: 1.0,
         }
     }
@@ -92,34 +131,34 @@ impl IsotonicRegression {
     /// Add new points to the regression
     pub fn add_points(&mut self, points: &[Point]) {
         for point in points {
-            self.centroid_point.x += point.x * point.weight;
-            self.centroid_point.y += point.y * point.weight;
-            self.centroid_point.weight += point.weight;
+            self.centroid_point.sum_x += point.x * point.weight;
+            self.centroid_point.sum_y += point.y * point.weight;
+            self.centroid_point.sum_weight += point.weight;
         }
 
         let mut new_points = self.points.clone();
-        new_points.extend_from_slice(points);
+        new_points.extend(points);
         self.points = isotonic(&new_points, self.direction.clone());
+    }
+
+    /// Remove points by inverting their weight and adding
+    pub fn remove_points(&mut self, points: &[Point]) {
+        self.add_points(
+            points.iter()
+                .map(|p| Point::new_with_weight(p.x, p.y, -p.weight))
+                .collect::<Vec<_>>().as_slice());
     }
 
     /// How many points?
     pub fn len(&self) -> usize {
-        self.centroid_point.weight as usize
+        self.centroid_point.sum_weight.round() as usize
     }
 
     /// Are there any points?
     #[must_use]
     pub fn is_empty(&self) -> bool {
-        self.centroid_point.weight == 0.0
+        self.centroid_point.sum_weight == 0.0
     }
-}
-
-/// A point in 2D cartesian space
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub struct Point {
-    x: f64,
-    y: f64,
-    weight: f64,
 }
 
 impl Point {
@@ -161,7 +200,7 @@ impl Point {
 
 }
 
-fn interpolate_two_points(a: &Point, b: &Point, at_x: &f64) -> f64 {
+fn interpolate_two_points(a: &Point, b: &Point, at_x: f64) -> f64 {
     let prop = (at_x - (a.x)) / (b.x - a.x);
     (b.y - a.y) * prop + a.y
 }
