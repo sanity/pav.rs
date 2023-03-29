@@ -1,12 +1,13 @@
 use std::fmt::{Display, Formatter};
 
 use ordered_float::OrderedFloat;
+use serde::Serialize;
 
 /// A vector of points forming an isotonic regression, along with the
 /// centroid point of the original set.
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct IsotonicRegression {
     direction: Direction,
     points: Vec<Point>,
@@ -14,21 +15,21 @@ pub struct IsotonicRegression {
 }
 
 /// A point in 2D cartesian space
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, Serialize)]
 pub struct Point {
     x: f64,
     y: f64,
     weight: f64,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 struct Centroid {
     sum_x: f64,
     sum_y: f64,
     sum_weight: f64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 enum Direction {
     Ascending,
     Descending,
