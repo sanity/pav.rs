@@ -6,7 +6,6 @@ use serde::Serialize;
 /// A vector of points forming an isotonic regression, along with the
 /// centroid point of the original set.
 
-
 #[derive(Debug, Clone, Serialize)]
 pub struct IsotonicRegression {
     direction: Direction,
@@ -47,20 +46,17 @@ impl Display for IsotonicRegression {
         writeln!(
             f,
             "\t\t{:.2}\t{:.2}\t{:.2}",
-            self.centroid_point.sum_x,
-            self.centroid_point.sum_y,
-            self.centroid_point.sum_weight
+            self.centroid_point.sum_x, self.centroid_point.sum_y, self.centroid_point.sum_weight
         )?;
         write!(f, "}}")
     }
 }
 
-
 impl IsotonicRegression {
     /// Find an ascending isotonic regression from a set of points
     pub fn new_ascending(points: &[Point]) -> IsotonicRegression {
         IsotonicRegression::new(points, Direction::Ascending)
-    } 
+    }
 
     /// Find a descending isotonic regression from a set of points
     pub fn new_descending(points: &[Point]) -> IsotonicRegression {
@@ -68,7 +64,10 @@ impl IsotonicRegression {
     }
 
     fn new(points: &[Point], direction: Direction) -> IsotonicRegression {
-        assert!(!points.is_empty(), "points is empty, can't create regression");
+        assert!(
+            !points.is_empty(),
+            "points is empty, can't create regression"
+        );
         let point_count: f64 = points.iter().map(Point::weight).sum();
         let mut sum_x: f64 = 0.0;
         let mut sum_y: f64 = 0.0;
@@ -78,9 +77,13 @@ impl IsotonicRegression {
         }
 
         IsotonicRegression {
-            direction : direction.clone(),
+            direction: direction.clone(),
             points: isotonic(points, direction),
-            centroid_point: Centroid { sum_x, sum_y, sum_weight : point_count } ,
+            centroid_point: Centroid {
+                sum_x,
+                sum_y,
+                sum_weight: point_count,
+            },
         }
     }
 
@@ -145,9 +148,12 @@ impl IsotonicRegression {
     /// Remove points by inverting their weight and adding
     pub fn remove_points(&mut self, points: &[Point]) {
         self.add_points(
-            points.iter()
+            points
+                .iter()
                 .map(|p| Point::new_with_weight(p.x, p.y, -p.weight))
-                .collect::<Vec<_>>().as_slice());
+                .collect::<Vec<_>>()
+                .as_slice(),
+        );
     }
 
     /// How many points?
@@ -198,7 +204,6 @@ impl Point {
 
         self.weight += other.weight;
     }
-
 }
 
 fn interpolate_two_points(a: &Point, b: &Point, at_x: f64) -> f64 {
@@ -264,9 +269,7 @@ mod tests {
         ];
 
         let regression = IsotonicRegression::new_ascending(points);
-        assert_eq!(
-            regression.interpolate(1.5), 1.75
-        );
+        assert_eq!(regression.interpolate(1.5), 1.75);
     }
 
     #[test]
@@ -379,15 +382,17 @@ mod tests {
 
     #[test]
     fn test_single_point_regression() {
-        let regression = IsotonicRegression::new_ascending(&[
-            Point::new(1.0, 3.0),
-        ]);
+        let regression = IsotonicRegression::new_ascending(&[Point::new(1.0, 3.0)]);
         assert_eq!(regression.interpolate(0.0), 3.0);
     }
 
     #[test]
     fn test_point_accessors() {
-        let point = Point { x: 1.0, y: 2.0 , weight : 3.0};
+        let point = Point {
+            x: 1.0,
+            y: 2.0,
+            weight: 3.0,
+        };
         assert_eq!(point.x(), 1.0);
         assert_eq!(point.y(), 2.0);
         assert_eq!(point.weight(), 3.0);
@@ -395,75 +400,46 @@ mod tests {
 
     #[test]
     fn test_add_points_1() {
-        let points = &[
-            Point::new(0.0, 1.0),
-        ];
+        let points = &[Point::new(0.0, 1.0)];
 
         let mut regression = IsotonicRegression::new_ascending(points);
 
-        regression.add_points(&[
-                        Point::new(1.0, 2.0),
-        ]);
+        regression.add_points(&[Point::new(1.0, 2.0)]);
 
         assert_eq!(
             regression.get_points(),
-            &[Point::new_with_weight(
-                0.0,
-                1.0,
-                1.0
-            ),
-            Point::new_with_weight(
-                1.0,
-                2.0,
-                1.0
-            ),
+            &[
+                Point::new_with_weight(0.0, 1.0, 1.0),
+                Point::new_with_weight(1.0, 2.0, 1.0),
             ]
         );
     }
 
     #[test]
     fn test_add_points_2() {
-        let points = &[
-            Point::new(1.0, 2.0),
-        ];
+        let points = &[Point::new(1.0, 2.0)];
 
         let mut regression = IsotonicRegression::new_ascending(points);
 
-        regression.add_points(&[
-                        Point::new(0.0, 3.0),
-        ]);
+        regression.add_points(&[Point::new(0.0, 3.0)]);
 
         assert_eq!(
             regression.get_points(),
-            &[
-            Point::new_with_weight(
-                0.5,
-                2.5,
-                2.0
-            ),
-            ]
+            &[Point::new_with_weight(0.5, 2.5, 2.0),]
         );
     }
 
     #[test]
     fn test_add_equal_x() {
-        let points = &[
-            Point::new(0.0, 1.0),
-        ];
+        let points = &[Point::new(0.0, 1.0)];
 
         let mut regression = IsotonicRegression::new_ascending(points);
 
-        regression.add_points(&[
-            Point::new(0.0, 2.0),
-        ]);
+        regression.add_points(&[Point::new(0.0, 2.0)]);
 
         assert_eq!(
             regression.get_points(),
-            &[Point::new_with_weight(
-                0.0,
-                1.5,
-                2.0
-            )]
+            &[Point::new_with_weight(0.0, 1.5, 2.0)]
         );
     }
 
@@ -475,7 +451,10 @@ mod tests {
         let mut rng = rand::thread_rng();
         let mut points = Vec::new();
         for _ in 0..100 {
-            points.push(Point::new(rng.gen_range(0.0 .. 100.0), rng.gen_range(0.0 .. 100.0)));
+            points.push(Point::new(
+                rng.gen_range(0.0..100.0),
+                rng.gen_range(0.0..100.0),
+            ));
         }
 
         let regression = IsotonicRegression::new_ascending(&points);
@@ -486,5 +465,4 @@ mod tests {
 
         assert_eq!(regression.centroid_point, regression2.centroid_point);
     }
-
 }
