@@ -220,32 +220,22 @@ fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
     // Sort the points by x, and if x is equal, sort by y descending to ensure that points with the same x
     // get merged.
     merged_points.sort_by(|a, b| {
-        let x_ordering = a.x.partial_cmp(&b.x).unwrap_or(std::cmp::Ordering::Equal);
-
-        if x_ordering == std::cmp::Ordering::Equal {
-            // If x values are equal, sort by y descending.
-            b.y.partial_cmp(&a.y).unwrap_or(std::cmp::Ordering::Equal)
-        } else {
-            x_ordering
-        }
+        a.x.partial_cmp(&b.x)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then(b.y.partial_cmp(&a.y).unwrap_or(std::cmp::Ordering::Equal))
     });
-
+    
     let mut iso_points: Vec<Point> = Vec::new();
-    for point in &mut merged_points.iter() {
-        if iso_points.is_empty() || (point.y > iso_points.last().unwrap().y) {
-            iso_points.push(*point)
-        } else {
-            let mut new_point = *point;
-            loop {
-                if iso_points.is_empty() || (iso_points.last().unwrap().y < (new_point).y) {
-                    iso_points.push(new_point);
-                    break;
-                } else {
-                    let last_to_repl = iso_points.pop();
-                    new_point.merge_with(&last_to_repl.unwrap());
-                }
+    for point in merged_points.iter() {
+        let mut new_point = *point;
+        while let Some(last_point) = iso_points.last() {
+            if last_point.y < new_point.y {
+                break;
             }
+            let last_to_repl = iso_points.pop().unwrap();
+            new_point.merge_with(&last_to_repl);
         }
+        iso_points.push(new_point);
     }
 
     return match direction {
