@@ -64,10 +64,6 @@ impl IsotonicRegression {
     }
 
     fn new(points: &[Point], direction: Direction) -> IsotonicRegression {
-        assert!(
-            !points.is_empty(),
-            "points is empty, can't create regression"
-        );
         let point_count: f64 = points.iter().map(Point::weight).sum();
         let mut sum_x: f64 = 0.0;
         let mut sum_y: f64 = 0.0;
@@ -87,9 +83,13 @@ impl IsotonicRegression {
         }
     }
 
-    /// Find the _y_ point at position `at_x`
-    pub fn interpolate(&self, at_x: f64) -> f64 {
-        if self.points.len() == 1 {
+    /// Find the _y_ point at position `at_x` or None if the regression is empty
+    pub fn interpolate(&self, at_x: f64) -> Option<f64> {
+        if self.points.is_empty() {
+            return None;
+        }
+
+        let interpolation = if self.points.len() == 1 {
             self.points[0].y
         } else {
             let pos = self
@@ -101,12 +101,12 @@ impl IsotonicRegression {
                     if ix < 1 {
                         interpolate_two_points(
                             self.points.first().unwrap(),
-                            &self.get_centroid_point(),
+                            &self.get_centroid_point().unwrap(),
                             at_x,
                         )
                     } else if ix >= self.points.len() {
                         interpolate_two_points(
-                            &self.get_centroid_point(),
+                            &self.get_centroid_point().unwrap(),
                             self.points.last().unwrap(),
                             at_x,
                         )
@@ -115,7 +115,9 @@ impl IsotonicRegression {
                     }
                 }
             }
-        }
+        };
+
+        Some(interpolation)
     }
 
     /// Retrieve the points that make up the isotonic regression
@@ -124,12 +126,16 @@ impl IsotonicRegression {
     }
 
     /// Retrieve the mean point of the original point set
-    pub fn get_centroid_point(&self) -> Point {
-        Point {
+    pub fn get_centroid_point(&self) -> Option<Point> {
+        if self.centroid_point.sum_weight == 0.0 {
+            return None;
+        } else {
+        Some(Point {
             x: self.centroid_point.sum_x / self.centroid_point.sum_weight,
             y: self.centroid_point.sum_y / self.centroid_point.sum_weight,
             weight: 1.0,
-        }
+        })
+    }
     }
 
     /// Add new points to the regression
@@ -224,7 +230,7 @@ fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
             .unwrap_or(std::cmp::Ordering::Equal)
             .then(b.y.partial_cmp(&a.y).unwrap_or(std::cmp::Ordering::Equal))
     });
-    
+
     let mut iso_points: Vec<Point> = Vec::new();
     for point in merged_points.iter() {
         let mut new_point = *point;
@@ -259,7 +265,7 @@ mod tests {
         ];
 
         let regression = IsotonicRegression::new_ascending(points);
-        assert_eq!(regression.interpolate(1.5), 1.75);
+        assert_eq!(regression.interpolate(1.5).unwrap(), 1.75);
     }
 
     #[test]
@@ -324,7 +330,7 @@ mod tests {
     fn test_interpolate() {
         let regression =
             IsotonicRegression::new_ascending(&[Point::new(1.0, 5.0), Point::new(2.0, 7.0)]);
-        assert!((regression.interpolate(1.5) - 6.0).abs() < f64::EPSILON);
+        assert!((regression.interpolate(1.5).unwrap() - 6.0).abs() < f64::EPSILON);
     }
 
     #[test]
@@ -367,13 +373,13 @@ mod tests {
             Point::new(1.0, 2.0),
             Point::new(2.0, 1.0),
         ]);
-        assert_eq!(regression.interpolate(0.5), 2.5);
+        assert_eq!(regression.interpolate(0.5).unwrap(), 2.5);
     }
 
     #[test]
     fn test_single_point_regression() {
         let regression = IsotonicRegression::new_ascending(&[Point::new(1.0, 3.0)]);
-        assert_eq!(regression.interpolate(0.0), 3.0);
+        assert_eq!(regression.interpolate(0.0).unwrap(), 3.0);
     }
 
     #[test]
@@ -454,5 +460,37 @@ mod tests {
         regression2.add_points(&points[(points.len() / 2)..points.len()]);
 
         assert_eq!(regression.centroid_point, regression2.centroid_point);
+    }
+
+    // This test creates two IsotonicRegressions, one of which starts empty but with points added,
+    // the other of which starts with all the points. It then checks that the two regressions
+    // are similar.
+    #[test]
+    fn test_add_points_random_regression() {
+        let mut rng = rand::thread_rng();
+        let mut points = Vec::new();
+        for _ in 0..100 {
+            points.push(Point::new(
+                rng.gen_range(0.0..100.0),
+                rng.gen_range(0.0..100.0),
+            ));
+        }
+
+        let regression = IsotonicRegression::new_ascending(&points);
+
+        let mut regression2 = IsotonicRegression::new_ascending(&[]);
+
+        assert_eq!(regression2.get_points(), &[]);
+
+        regression2.add_points(&points);
+
+        assert_eq!(regression.centroid_point, regression2.centroid_point);
+    }
+
+    #[test]
+    fn test_add_points_panic() {
+        let regression = IsotonicRegression::new_ascending(&[]);
+
+        assert_eq!(regression.interpolate(50.0), None);
     }
 }
