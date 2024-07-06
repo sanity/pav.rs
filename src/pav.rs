@@ -11,6 +11,7 @@ pub struct IsotonicRegression {
     direction: Direction,
     points: Vec<Point>,
     centroid_point: Centroid,
+    intersect_origin: bool,
 }
 
 /// A point in 2D cartesian space
@@ -55,19 +56,25 @@ impl Display for IsotonicRegression {
 impl IsotonicRegression {
     /// Find an ascending isotonic regression from a set of points
     pub fn new_ascending(points: &[Point]) -> IsotonicRegression {
-        IsotonicRegression::new(points, Direction::Ascending)
+        IsotonicRegression::new(points, Direction::Ascending, false)
     }
 
     /// Find a descending isotonic regression from a set of points
     pub fn new_descending(points: &[Point]) -> IsotonicRegression {
-        IsotonicRegression::new(points, Direction::Descending)
+        IsotonicRegression::new(points, Direction::Descending, false)
     }
 
-    fn new(points: &[Point], direction: Direction) -> IsotonicRegression {
+    /// Find an isotonic regression in the specified direction. If `intersect_origin` is true, the
+    /// regression will intersect the origin (0,0) and all points must be >= 0 on both axes to
+    /// avoid a panic.
+    fn new(points: &[Point], direction: Direction, intersect_origin : bool) -> IsotonicRegression {
         let point_count: f64 = points.iter().map(Point::weight).sum();
         let mut sum_x: f64 = 0.0;
         let mut sum_y: f64 = 0.0;
         for point in points {
+            assert!(!intersect_origin || 
+                (point.x >= 0.0 && point.y >= 0.0), "With intersect_origin = true, all points must be >= 0 on both x and y axes" );
+                
             sum_x += point.x * point.weight;
             sum_y += point.y * point.weight;
         }
@@ -80,6 +87,7 @@ impl IsotonicRegression {
                 sum_y,
                 sum_weight: point_count,
             },
+            intersect_origin,
         }
     }
 
@@ -99,11 +107,19 @@ impl IsotonicRegression {
                 Ok(ix) => self.points[ix].y,
                 Err(ix) => {
                     if ix < 1 {
-                        interpolate_two_points(
-                            self.points.first().unwrap(),
-                            &self.get_centroid_point().unwrap(),
-                            at_x,
-                        )
+                        if self.intersect_origin {
+                            interpolate_two_points(
+                                &Point::new(0.0, 0.0),
+                                self.points.first().unwrap(),
+                                at_x,
+                            )
+                        } else {
+                            interpolate_two_points(
+                                self.points.first().unwrap(),
+                                &self.get_centroid_point().unwrap(),
+                                at_x,
+                            )
+                        }
                     } else if ix >= self.points.len() {
                         interpolate_two_points(
                             &self.get_centroid_point().unwrap(),
@@ -128,7 +144,7 @@ impl IsotonicRegression {
     /// Retrieve the mean point of the original point set
     pub fn get_centroid_point(&self) -> Option<Point> {
         if self.centroid_point.sum_weight == 0.0 {
-            return None;
+            None
         } else {
         Some(Point {
             x: self.centroid_point.sum_x / self.centroid_point.sum_weight,
@@ -141,6 +157,8 @@ impl IsotonicRegression {
     /// Add new points to the regression
     pub fn add_points(&mut self, points: &[Point]) {
         for point in points {
+            assert!(!self.intersect_origin || 
+                (point.x >= 0.0 && point.y >= 0.0), "With intersect_origin = true, all points must be >= 0 on both x and y axes" );
             self.centroid_point.sum_x += point.x * point.weight;
             self.centroid_point.sum_y += point.y * point.weight;
             self.centroid_point.sum_weight += point.weight;
