@@ -169,6 +169,7 @@ impl<T: Coordinate> IsotonicRegression<T> {
     }
 
 
+    /// Remove points from the regression
     pub fn remove_points(&mut self, points: &[Point<T>]) {
         let inverted_points: Vec<Point<T>> = points
             .iter()
