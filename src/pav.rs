@@ -78,18 +78,18 @@ enum Direction {
     Descending,
 }
 
-impl Display for IsotonicRegression {
+impl<T: Coordinate + Display> Display for IsotonicRegression<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "IsotonicRegression {{")?;
         writeln!(f, "\tdirection: {:?},", self.direction)?;
         writeln!(f, "\tpoints:")?;
         for point in &self.points {
-            writeln!(f, "\t\t{:.2}\t{:.2}\t{:.2}", point.x, point.y, point.weight)?;
+            writeln!(f, "\t\t{}\t{:.2}\t{:.2}", point.x, point.y, point.weight)?;
         }
         writeln!(f, "\tcentroid_point:")?;
         writeln!(
             f,
-            "\t\t{:.2}\t{:.2}\t{:.2}",
+            "\t\t{}\t{:.2}\t{:.2}",
             self.centroid_point.sum_x, self.centroid_point.sum_y, self.centroid_point.sum_weight
         )?;
         write!(f, "}}")
@@ -110,12 +110,12 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// Find an isotonic regression in the specified direction. If `intersect_origin` is true, the
     /// regression will intersect the origin (0,0) and all points must be >= 0 on both axes.
     fn new(points: &[Point<T>], direction: Direction, intersect_origin: bool) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
-        let point_count: f64 = points.iter().map(Point::weight).sum();
+        let point_count: f64 = points.iter().map(|p| p.weight).sum();
         let (sum_x, sum_y) = points.iter().try_fold((T::zero(), 0.0), |(sx, sy), point| {
             if intersect_origin && (point.x.to_f64() < 0.0 || point.y < 0.0) {
                 Err(IsotonicRegressionError::NegativePointWithIntersectOrigin)
             } else {
-                Ok((sx + point.x * point.weight(), sy + point.y * point.weight))
+                Ok((sx + point.x * point.weight, sy + point.y * point.weight))
             }
         })?;
 
@@ -133,7 +133,7 @@ impl<T: Coordinate> IsotonicRegression<T> {
 
     /// Find the _y_ point at position `at_x` or None if the regression is empty
     #[must_use]
-    pub fn interpolate(&self, at_x: f64) -> Option<f64> {
+    pub fn interpolate(&self, at_x: T) -> Option<f64> {
         if self.points.is_empty() {
             return None;
         }
@@ -143,14 +143,14 @@ impl<T: Coordinate> IsotonicRegression<T> {
         } else {
             let pos = self
                 .points
-                .binary_search_by_key(&OrderedFloat(at_x), |p| OrderedFloat(p.x));
+                .binary_search_by(|p| p.x.partial_cmp(&at_x).unwrap());
             match pos {
                 Ok(ix) => self.points[ix].y,
                 Err(ix) => {
                     if ix < 1 {
                         if self.intersect_origin {
                             interpolate_two_points(
-                                &Point::new(0.0, 0.0),
+                                &Point::new(T::zero(), 0.0),
                                 self.points.first().unwrap(),
                                 at_x,
                             )
@@ -178,46 +178,45 @@ impl<T: Coordinate> IsotonicRegression<T> {
     }
 
     /// Retrieve the points that make up the isotonic regression
-    pub fn get_points(&self) -> &[Point] {
+    pub fn get_points(&self) -> &[Point<T>] {
         &self.points
     }
 
     /// Retrieve the mean point of the original point set
-    pub fn get_centroid_point(&self) -> Option<Point> {
+    pub fn get_centroid_point(&self) -> Option<Point<T>> {
         if self.centroid_point.sum_weight == 0.0 {
             None
         } else {
-        Some(Point {
-            x: self.centroid_point.sum_x / self.centroid_point.sum_weight,
-            y: self.centroid_point.sum_y / self.centroid_point.sum_weight,
-            weight: 1.0,
-        })
-    }
+            Some(Point {
+                x: self.centroid_point.sum_x / self.centroid_point.sum_weight,
+                y: self.centroid_point.sum_y / self.centroid_point.sum_weight,
+                weight: 1.0,
+            })
+        }
     }
 
     /// Add new points to the regression
-    pub fn add_points(&mut self, points: &[Point]) {
+    pub fn add_points(&mut self, points: &[Point<T>]) {
         for point in points {
             assert!(!self.intersect_origin || 
-                (point.x >= 0.0 && point.y >= 0.0), "With intersect_origin = true, all points must be >= 0 on both x and y axes" );
-            self.centroid_point.sum_x += point.x * point.weight;
+                (point.x.to_f64() >= 0.0 && point.y >= 0.0), "With intersect_origin = true, all points must be >= 0 on both x and y axes" );
+            self.centroid_point.sum_x = self.centroid_point.sum_x + point.x * point.weight;
             self.centroid_point.sum_y += point.y * point.weight;
             self.centroid_point.sum_weight += point.weight;
         }
 
         let mut new_points = self.points.clone();
-        new_points.extend(points);
+        new_points.extend_from_slice(points);
         self.points = isotonic(&new_points, self.direction.clone());
     }
 
     /// Remove points by inverting their weight and adding
-    pub fn remove_points(&mut self, points: &[Point]) {
+    pub fn remove_points(&mut self, points: &[Point<T>]) {
         self.add_points(
-            points
+            &points
                 .iter()
                 .map(|p| Point::new_with_weight(p.x, p.y, -p.weight))
-                .collect::<Vec<_>>()
-                .as_slice(),
+                .collect::<Vec<_>>(),
         );
     }
 
@@ -233,14 +232,14 @@ impl<T: Coordinate> IsotonicRegression<T> {
     }
 }
 
-impl Point {
+impl<T: Coordinate> Point<T> {
     /// Create a new Point
-    pub fn new(x: f64, y: f64) -> Point {
+    pub fn new(x: T, y: f64) -> Point<T> {
         Point { x, y, weight: 1.0 }
     }
 
     /// Create a new Point with a specified weight
-    pub fn new_with_weight(x: f64, y: f64, weight: f64) -> Point {
+    pub fn new_with_weight(x: T, y: f64, weight: f64) -> Point<T> {
         Point { x, y, weight }
     }
 
@@ -248,8 +247,8 @@ impl Point {
     // results.
 
     /// The x position of the point
-    pub fn x(&self) -> f64 {
-        self.x
+    pub fn x(&self) -> &T {
+        &self.x
     }
 
     /// The y position of the point
@@ -262,28 +261,26 @@ impl Point {
         self.weight
     }
 
-    fn merge_with(&mut self, other: &Point) {
-        self.x = ((self.x * self.weight) + (other.x * other.weight)) / (self.weight + other.weight);
-
-        self.y = ((self.y * self.weight) + (other.y * other.weight)) / (self.weight + other.weight);
-
+    fn merge_with(&mut self, other: &Point<T>) {
+        self.x = (self.x * self.weight + other.x * other.weight) / (self.weight + other.weight);
+        self.y = (self.y * self.weight + other.y * other.weight) / (self.weight + other.weight);
         self.weight += other.weight;
     }
 }
 
-impl From<(f64, f64)> for Point {
-    fn from(tuple: (f64, f64)) -> Self {
+impl<T: Coordinate> From<(T, f64)> for Point<T> {
+    fn from(tuple: (T, f64)) -> Self {
         Point::new(tuple.0, tuple.1)
     }
 }
 
-fn interpolate_two_points(a: &Point, b: &Point, at_x: f64) -> f64 {
-    let prop = (at_x - (a.x)) / (b.x - a.x);
+fn interpolate_two_points<T: Coordinate>(a: &Point<T>, b: &Point<T>, at_x: T) -> f64 {
+    let prop = (at_x.to_f64() - a.x.to_f64()) / (b.x.to_f64() - a.x.to_f64());
     (b.y - a.y) * prop + a.y
 }
 
-fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
-    let mut merged_points: Vec<Point> = match direction {
+fn isotonic<T: Coordinate>(points: &[Point<T>], direction: Direction) -> Vec<Point<T>> {
+    let mut merged_points: Vec<Point<T>> = match direction {
         Direction::Ascending => points.to_vec(),
         Direction::Descending => points.iter().map(|p| Point { y: -p.y, ..*p }).collect(),
     };
@@ -296,7 +293,7 @@ fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
             .then(b.y.partial_cmp(&a.y).unwrap_or(std::cmp::Ordering::Equal))
     });
 
-    let iso_points = merged_points.into_iter().fold(Vec::new(), |mut acc: Vec<Point>, mut point| {
+    let iso_points = merged_points.into_iter().fold(Vec::new(), |mut acc: Vec<Point<T>>, mut point| {
         while let Some(last) = acc.last() {
             if last.y >= point.y {
                 point.merge_with(&acc.pop().unwrap());
@@ -308,10 +305,10 @@ fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
         acc
     });
 
-    return match direction {
+    match direction {
         Direction::Ascending => iso_points,
-        Direction::Descending => iso_points.iter().map(|p| Point { y: -p.y, ..*p }).collect(),
-    };
+        Direction::Descending => iso_points.into_iter().map(|p| Point { y: -p.y, ..p }).collect(),
+    }
 }
 
 #[cfg(test)]
