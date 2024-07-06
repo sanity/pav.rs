@@ -58,18 +58,67 @@ impl<T: Coordinate + Display> Display for IsotonicRegression<T> {
 
 #[allow(dead_code)]
 impl<T: Coordinate> IsotonicRegression<T> {
-    /// Find an ascending isotonic regression from a set of points
+    /// Find an ascending isotonic regression from a set of points.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crate::point::Point;
+    /// use crate::isotonic_regression::IsotonicRegression;
+    ///
+    /// let points = vec![
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(1.0, 2.0),
+    ///     Point::new(2.0, 1.5),
+    ///     Point::new(3.0, 3.0),
+    /// ];
+    /// let regression = IsotonicRegression::new_ascending(&points).unwrap();
+    /// assert_eq!(regression.get_points().len(), 3);
+    /// ```
     pub fn new_ascending(points: &[Point<T>]) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
         IsotonicRegression::new(points, Direction::Ascending, false)
     }
 
-    /// Find a descending isotonic regression from a set of points
+    /// Find a descending isotonic regression from a set of points.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crate::point::Point;
+    /// use crate::isotonic_regression::IsotonicRegression;
+    ///
+    /// let points = vec![
+    ///     Point::new(0.0, 3.0),
+    ///     Point::new(1.0, 2.0),
+    ///     Point::new(2.0, 2.5),
+    ///     Point::new(3.0, 1.0),
+    /// ];
+    /// let regression = IsotonicRegression::new_descending(&points).unwrap();
+    /// assert_eq!(regression.get_points().len(), 3);
+    /// ```
     pub fn new_descending(points: &[Point<T>]) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
         IsotonicRegression::new(points, Direction::Descending, false)
     }
 
-    /// Find an isotonic regression in the specified direction. If `intersect_origin` is true, the
-    /// regression will intersect the origin (0,0) and all points must be >= 0 on both axes.
+    /// Find an isotonic regression in the specified direction.
+    ///
+    /// If `intersect_origin` is true, the regression will intersect the origin (0,0) and all points must be >= 0 on both axes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crate::point::Point;
+    /// use crate::isotonic_regression::{IsotonicRegression, Direction};
+    ///
+    /// let points = vec![
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(1.0, 2.0),
+    ///     Point::new(2.0, 1.5),
+    ///     Point::new(3.0, 3.0),
+    /// ];
+    /// let regression = IsotonicRegression::new(&points, Direction::Ascending, false).unwrap();
+    /// assert_eq!(regression.get_points().len(), 3);
+    /// ```
     fn new(points: &[Point<T>], direction: Direction, intersect_origin: bool) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
         let (sum_x, sum_y, sum_weight) = points.iter().try_fold((T::zero(), T::zero(), 0.0), |(sx, sy, sw), point| {
             if intersect_origin && (point.x().is_sign_negative() || point.y().is_sign_negative()) {
@@ -93,7 +142,24 @@ impl<T: Coordinate> IsotonicRegression<T> {
         Ok(regression)
     }
 
-    /// Find the _y_ point at position `at_x` or None if the regression is empty
+    /// Find the _y_ point at position `at_x` or None if the regression is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crate::point::Point;
+    /// use crate::isotonic_regression::IsotonicRegression;
+    ///
+    /// let points = vec![
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(1.0, 2.0),
+    ///     Point::new(2.0, 1.5),
+    ///     Point::new(3.0, 3.0),
+    /// ];
+    /// let regression = IsotonicRegression::new_ascending(&points).unwrap();
+    /// let interpolated_y = regression.interpolate(1.5).unwrap();
+    /// assert_eq!(interpolated_y, 1.75);
+    /// ```
     #[must_use]
     pub fn interpolate(&self, at_x: T) -> Option<T> {
         if self.points.is_empty() {
@@ -139,12 +205,46 @@ impl<T: Coordinate> IsotonicRegression<T> {
         Some(interpolation)
     }
 
-    /// Retrieve the points that make up the isotonic regression
+    /// Retrieve the points that make up the isotonic regression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crate::point::Point;
+    /// use crate::isotonic_regression::IsotonicRegression;
+    ///
+    /// let points = vec![
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(1.0, 2.0),
+    ///     Point::new(2.0, 1.5),
+    ///     Point::new(3.0, 3.0),
+    /// ];
+    /// let regression = IsotonicRegression::new_ascending(&points).unwrap();
+    /// assert_eq!(regression.get_points().len(), 3);
+    /// ```
     pub fn get_points(&self) -> &[Point<T>] {
         &self.points
     }
 
-    /// Retrieve the mean point of the original point set
+    /// Retrieve the mean point of the original point set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crate::point::Point;
+    /// use crate::isotonic_regression::IsotonicRegression;
+    ///
+    /// let points = vec![
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(1.0, 2.0),
+    ///     Point::new(2.0, 1.5),
+    ///     Point::new(3.0, 3.0),
+    /// ];
+    /// let regression = IsotonicRegression::new_ascending(&points).unwrap();
+    /// let centroid = regression.get_centroid_point().unwrap();
+    /// assert_eq!(*centroid.x(), 1.0);
+    /// assert_eq!(*centroid.y(), 1.875);
+    /// ```
     pub fn get_centroid_point(&self) -> Option<Point<T>> {
         if self.centroid_point.sum_weight == 0.0 {
             None
@@ -157,7 +257,21 @@ impl<T: Coordinate> IsotonicRegression<T> {
         }
     }
 
-    /// Add new points to the regression
+    /// Add new points to the regression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crate::point::Point;
+    /// use crate::isotonic_regression::IsotonicRegression;
+    ///
+    /// let mut regression = IsotonicRegression::new_ascending(&[
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(2.0, 2.0),
+    /// ]).unwrap();
+    /// regression.add_points(&[Point::new(1.0, 1.5)]);
+    /// assert_eq!(regression.get_points().len(), 3);
+    /// ```
     pub fn add_points(&mut self, points: &[Point<T>]) {
         for point in points {
             assert!(!self.intersect_origin || 
@@ -173,7 +287,22 @@ impl<T: Coordinate> IsotonicRegression<T> {
     }
 
 
-    /// Remove points from the regression
+    /// Remove points from the regression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crate::point::Point;
+    /// use crate::isotonic_regression::IsotonicRegression;
+    ///
+    /// let mut regression = IsotonicRegression::new_ascending(&[
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(1.0, 2.0),
+    ///     Point::new(2.0, 3.0),
+    /// ]).unwrap();
+    /// regression.remove_points(&[Point::new(1.0, 2.0)]);
+    /// assert_eq!(regression.get_points().len(), 2);
+    /// ```
     pub fn remove_points(&mut self, points: &[Point<T>]) {
         for point in points {
             assert!(!self.intersect_origin || 
@@ -192,12 +321,37 @@ impl<T: Coordinate> IsotonicRegression<T> {
         self.points = isotonic(&new_points, self.direction.clone());
     }
 
-    /// How many points?
+    /// Returns the number of points in the regression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crate::point::Point;
+    /// use crate::isotonic_regression::IsotonicRegression;
+    ///
+    /// let points = vec![
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(1.0, 2.0),
+    ///     Point::new(2.0, 1.5),
+    ///     Point::new(3.0, 3.0),
+    /// ];
+    /// let regression = IsotonicRegression::new_ascending(&points).unwrap();
+    /// assert_eq!(regression.len(), 4);
+    /// ```
     pub fn len(&self) -> usize {
         self.centroid_point.sum_weight.round() as usize
     }
 
-    /// Are there any points?
+    /// Checks if the regression is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crate::isotonic_regression::IsotonicRegression;
+    ///
+    /// let regression: IsotonicRegression<f64> = IsotonicRegression::new_ascending(&[]).unwrap();
+    /// assert!(regression.is_empty());
+    /// ```
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.centroid_point.sum_weight == 0.0
