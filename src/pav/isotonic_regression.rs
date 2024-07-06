@@ -75,16 +75,18 @@ impl<T: Coordinate> IsotonicRegression<T> {
             }
         })?;
 
-        Ok(IsotonicRegression {
+        let mut regression = IsotonicRegression {
             direction: direction.clone(),
-            points: isotonic(points, direction),
+            points: Vec::new(),
             centroid_point: Centroid {
                 sum_x,
                 sum_y,
                 sum_weight,
             },
             intersect_origin,
-        })
+        };
+        regression.add_points(points);
+        Ok(regression)
     }
 
     /// Find the _y_ point at position `at_x` or None if the regression is empty
@@ -164,6 +166,14 @@ impl<T: Coordinate> IsotonicRegression<T> {
         let mut new_points = self.points.clone();
         new_points.extend_from_slice(points);
         self.points = isotonic(&new_points, self.direction.clone());
+    }
+
+    pub fn remove_points(&mut self, points: &[Point<T>]) {
+        let inverted_points: Vec<Point<T>> = points
+            .iter()
+            .map(|p| Point::new_with_weight(*p.x(), *p.y(), -p.weight()))
+            .collect();
+        self.add_points(&inverted_points);
     }
 
     /// Remove points by inverting their weight and adding
