@@ -22,7 +22,7 @@ pub trait Coordinate:
     fn abs_diff(&self, other: &Self) -> Self;
 
     /// Checks if the coordinate is less than zero
-    fn is_negative(&self) -> bool;
+    fn is_sign_negative(&self) -> bool;
 
     /// Computes the average of two coordinates
     fn average(&self, other: &Self) -> Self;
@@ -49,8 +49,8 @@ impl Coordinate for f64 {
         (self - other).abs()
     }
 
-    fn is_negative(&self) -> bool {
-        *self < 0.0
+    fn is_sign_negative(&self) -> bool {
+        self.is_sign_negative()
     }
 
     fn average(&self, other: &Self) -> Self {
@@ -72,8 +72,8 @@ mod tests {
         assert_eq!(a.to_float(), 2.5);
         assert_eq!(f64::from_float(3.14), 3.14);
         assert_eq!(a.abs_diff(&b), 4.0);
-        assert!(!a.is_negative());
-        assert!(b.is_negative());
+        assert!(!a.is_sign_negative());
+        assert!(b.is_sign_negative());
         assert_eq!(a.average(&b), 0.5);
     }
 }

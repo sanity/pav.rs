@@ -222,19 +222,92 @@ fn isotonic<T: Coordinate>(points: &[Point<T>], direction: Direction) -> Vec<Poi
 
 #[cfg(test)]
 mod tests {
-    // No imports needed here, we'll use full paths in the tests
+    use super::*;
 
     #[test]
     fn usage_example() {
         let points = &[
-            super::Point::new(0.0, 1.0),
-            super::Point::new(1.0, 2.0),
-            super::Point::new(2.0, 1.5),
+            Point::new(0.0, 1.0),
+            Point::new(1.0, 2.0),
+            Point::new(2.0, 1.5),
         ];
 
-        let regression = super::IsotonicRegression::new_ascending(points).unwrap();
+        let regression = IsotonicRegression::new_ascending(points).unwrap();
         assert_eq!(regression.interpolate(1.5).unwrap(), 1.75);
     }
 
-    // ... (update all other tests to use super::IsotonicRegression and super::Point)
+    #[test]
+    fn test_ascending_regression() {
+        let points = &[
+            Point::new(0.0, 1.0),
+            Point::new(1.0, 2.0),
+            Point::new(2.0, 1.5),
+            Point::new(3.0, 3.0),
+        ];
+
+        let regression = IsotonicRegression::new_ascending(points).unwrap();
+        assert_eq!(regression.get_points().len(), 3);
+        assert_eq!(*regression.get_points()[0].y(), 1.0);
+        assert_eq!(*regression.get_points()[1].y(), 2.0);
+        assert_eq!(*regression.get_points()[2].y(), 3.0);
+    }
+
+    #[test]
+    fn test_descending_regression() {
+        let points = &[
+            Point::new(0.0, 3.0),
+            Point::new(1.0, 2.0),
+            Point::new(2.0, 2.5),
+            Point::new(3.0, 1.0),
+        ];
+
+        let regression = IsotonicRegression::new_descending(points).unwrap();
+        assert_eq!(regression.get_points().len(), 3);
+        assert_eq!(*regression.get_points()[0].y(), 3.0);
+        assert_eq!(*regression.get_points()[1].y(), 2.25);
+        assert_eq!(*regression.get_points()[2].y(), 1.0);
+    }
+
+    #[test]
+    fn test_add_points() {
+        let mut regression = IsotonicRegression::new_ascending(&[Point::new(0.0, 1.0), Point::new(2.0, 2.0)]).unwrap();
+        regression.add_points(&[Point::new(1.0, 1.5)]);
+        assert_eq!(regression.get_points().len(), 3);
+        assert_eq!(*regression.get_points()[1].x(), 1.0);
+        assert_eq!(*regression.get_points()[1].y(), 1.5);
+    }
+
+    #[test]
+    fn test_remove_points() {
+        let mut regression = IsotonicRegression::new_ascending(&[
+            Point::new(0.0, 1.0),
+            Point::new(1.0, 2.0),
+            Point::new(2.0, 3.0),
+        ]).unwrap();
+        regression.remove_points(&[Point::new(1.0, 2.0)]);
+        assert_eq!(regression.get_points().len(), 2);
+        assert_eq!(*regression.get_points()[0].x(), 0.0);
+        assert_eq!(*regression.get_points()[1].x(), 2.0);
+    }
+
+    #[test]
+    fn test_centroid_point() {
+        let points = &[
+            Point::new(0.0, 1.0),
+            Point::new(1.0, 2.0),
+            Point::new(2.0, 3.0),
+        ];
+        let regression = IsotonicRegression::new_ascending(points).unwrap();
+        let centroid = regression.get_centroid_point().unwrap();
+        assert_eq!(*centroid.x(), 1.0);
+        assert_eq!(*centroid.y(), 2.0);
+    }
+
+    #[test]
+    fn test_empty_regression() {
+        let regression: IsotonicRegression<f64> = IsotonicRegression::new_ascending(&[]).unwrap();
+        assert!(regression.is_empty());
+        assert_eq!(regression.len(), 0);
+        assert!(regression.interpolate(1.0).is_none());
+    }
 }
