@@ -7,17 +7,29 @@ use thiserror::Error;
 /// Trait for coordinate types used in Point
 pub trait Coordinate:
     Copy + Clone + PartialOrd + PartialEq +
-    Add<Output = Self> + Sub<Output = Self> + Mul<f64, Output = Self> + Div<f64, Output = Self> +
+    Add<Output = Self> + Sub<Output = Self> + Mul<Self, Output = Self> + Div<Self, Output = Self> +
     AddAssign + Neg<Output = Self>
 {
     /// Returns the zero value for this coordinate type
     fn zero() -> Self;
 
-    /// Converts the coordinate to an f64
-    fn to_f64(&self) -> f64;
+    /// Returns the one value for this coordinate type
+    fn one() -> Self;
 
-    /// Creates a coordinate from an f64
-    fn from_f64(value: f64) -> Self;
+    /// Converts the coordinate to a float representation
+    fn to_float(&self) -> f64;
+
+    /// Creates a coordinate from a float representation
+    fn from_float(value: f64) -> Self;
+
+    /// Computes the absolute difference between two coordinates
+    fn abs_diff(&self, other: &Self) -> Self;
+
+    /// Checks if the coordinate is less than zero
+    fn is_negative(&self) -> bool;
+
+    /// Computes the average of two coordinates
+    fn average(&self, other: &Self) -> Self;
 }
 
 impl Coordinate for f64 {
@@ -25,12 +37,28 @@ impl Coordinate for f64 {
         0.0
     }
 
-    fn to_f64(&self) -> f64 {
+    fn one() -> Self {
+        1.0
+    }
+
+    fn to_float(&self) -> f64 {
         *self
     }
 
-    fn from_f64(value: f64) -> Self {
+    fn from_float(value: f64) -> Self {
         value
+    }
+
+    fn abs_diff(&self, other: &Self) -> Self {
+        (self - other).abs()
+    }
+
+    fn is_negative(&self) -> bool {
+        *self < 0.0
+    }
+
+    fn average(&self, other: &Self) -> Self {
+        (self + other) / 2.0
     }
 }
 
@@ -116,12 +144,12 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// Find an isotonic regression in the specified direction. If `intersect_origin` is true, the
     /// regression will intersect the origin (0,0) and all points must be >= 0 on both axes.
     fn new(points: &[Point<T>], direction: Direction, intersect_origin: bool) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
-        let point_count: f64 = points.iter().map(|p| p.weight).sum();
+        let point_count = T::from_float(points.iter().map(|p| p.weight).sum());
         let (sum_x, sum_y) = points.iter().try_fold((T::zero(), T::zero()), |(sx, sy), point| {
-            if intersect_origin && (point.x.to_f64() < 0.0 || point.y.to_f64() < 0.0) {
+            if intersect_origin && (point.x.is_negative() || point.y.is_negative()) {
                 Err(IsotonicRegressionError::NegativePointWithIntersectOrigin)
             } else {
-                Ok((sx + point.x * point.weight, sy + point.y * point.weight))
+                Ok((sx + point.x * T::from_float(point.weight), sy + point.y * T::from_float(point.weight)))
             }
         })?;
 
@@ -281,8 +309,8 @@ impl<T: Coordinate> From<(T, T)> for Point<T> {
 }
 
 fn interpolate_two_points<T: Coordinate>(a: &Point<T>, b: &Point<T>, at_x: T) -> T {
-    let prop = (at_x.to_f64() - a.x.to_f64()) / (b.x.to_f64() - a.x.to_f64());
-    T::from_f64((b.y.to_f64() - a.y.to_f64()) * prop + a.y.to_f64())
+    let prop = (at_x - a.x) / (b.x - a.x);
+    a.y + (b.y - a.y) * prop
 }
 
 fn isotonic<T: Coordinate>(points: &[Point<T>], direction: Direction) -> Vec<Point<T>> {
@@ -397,7 +425,7 @@ mod tests {
     fn test_interpolate() {
         let regression =
             IsotonicRegression::new_ascending(&[Point::new(1.0, 5.0), Point::new(2.0, 7.0)]).unwrap();
-        assert!((regression.interpolate(1.5).unwrap() - 6.0).abs() < f64::EPSILON);
+        assert!(regression.interpolate(1.5).unwrap().abs_diff(&6.0) < f64::EPSILON);
     }
 
     #[test]
