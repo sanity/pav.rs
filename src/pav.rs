@@ -94,7 +94,7 @@ impl<T: Coordinate> Default for Point<T> {
         Point {
             x: T::zero(),
             y: T::zero(),
-            weight: 1.0,
+            weight: T::one(),
         }
     }
 }
@@ -255,13 +255,13 @@ impl<T: Coordinate> IsotonicRegression<T> {
 
     /// How many points?
     pub fn len(&self) -> usize {
-        self.centroid_point.sum_weight.round() as usize
+        self.centroid_point.sum_weight.to_float().round() as usize
     }
 
     /// Are there any points?
     #[must_use]
     pub fn is_empty(&self) -> bool {
-        self.centroid_point.sum_weight == 0.0
+        self.centroid_point.sum_weight == T::zero()
     }
 }
 
@@ -486,7 +486,7 @@ mod tests {
         };
         assert_eq!(*point.x(), 1.0);
         assert_eq!(*point.y(), 2.0);
-        assert_eq!(point.weight(), 3.0);
+        assert_eq!(*point.weight(), T::from_float(3.0));
     }
 
     #[test]
