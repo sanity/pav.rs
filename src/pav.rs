@@ -55,7 +55,7 @@ pub struct IsotonicRegression<T: Coordinate> {
 #[derive(Debug, PartialEq, Copy, Clone, Serialize)]
 pub struct Point<T: Coordinate> {
     x: T,
-    y: f64,
+    y: T,
     weight: f64,
 }
 
@@ -63,7 +63,7 @@ impl<T: Coordinate> Default for Point<T> {
     fn default() -> Self {
         Point {
             x: T::zero(),
-            y: 0.0,
+            y: T::zero(),
             weight: 1.0,
         }
     }
@@ -137,7 +137,7 @@ impl<T: Coordinate> IsotonicRegression<T> {
 
     /// Find the _y_ point at position `at_x` or None if the regression is empty
     #[must_use]
-    pub fn interpolate(&self, at_x: T) -> Option<f64> {
+    pub fn interpolate(&self, at_x: T) -> Option<T> {
         if self.points.is_empty() {
             return None;
         }
@@ -154,7 +154,7 @@ impl<T: Coordinate> IsotonicRegression<T> {
                     if ix < 1 {
                         if self.intersect_origin {
                             interpolate_two_points(
-                                &Point::new(T::zero(), 0.0),
+                                &Point::new(T::zero(), T::zero()),
                                 self.points.first().unwrap(),
                                 at_x,
                             )
@@ -238,12 +238,12 @@ impl<T: Coordinate> IsotonicRegression<T> {
 
 impl<T: Coordinate> Point<T> {
     /// Create a new Point
-    pub fn new(x: T, y: f64) -> Point<T> {
+    pub fn new(x: T, y: T) -> Point<T> {
         Point { x, y, weight: 1.0 }
     }
 
     /// Create a new Point with a specified weight
-    pub fn new_with_weight(x: T, y: f64, weight: f64) -> Point<T> {
+    pub fn new_with_weight(x: T, y: T, weight: f64) -> Point<T> {
         Point { x, y, weight }
     }
 
@@ -256,8 +256,8 @@ impl<T: Coordinate> Point<T> {
     }
 
     /// The y position of the point
-    pub fn y(&self) -> f64 {
-        self.y
+    pub fn y(&self) -> &T {
+        &self.y
     }
 
     /// The weight of the point (initially 1.0)
@@ -272,15 +272,15 @@ impl<T: Coordinate> Point<T> {
     }
 }
 
-impl<T: Coordinate> From<(T, f64)> for Point<T> {
-    fn from(tuple: (T, f64)) -> Self {
+impl<T: Coordinate> From<(T, T)> for Point<T> {
+    fn from(tuple: (T, T)) -> Self {
         Point::new(tuple.0, tuple.1)
     }
 }
 
-fn interpolate_two_points<T: Coordinate>(a: &Point<T>, b: &Point<T>, at_x: T) -> f64 {
+fn interpolate_two_points<T: Coordinate>(a: &Point<T>, b: &Point<T>, at_x: T) -> T {
     let prop = (at_x.to_f64() - a.x.to_f64()) / (b.x.to_f64() - a.x.to_f64());
-    (b.y - a.y) * prop + a.y
+    T::from_f64((b.y.to_f64() - a.y.to_f64()) * prop + a.y.to_f64())
 }
 
 fn isotonic<T: Coordinate>(points: &[Point<T>], direction: Direction) -> Vec<Point<T>> {
