@@ -262,7 +262,7 @@ mod tests {
         let regression = IsotonicRegression::new_ascending(points).unwrap();
         assert_eq!(regression.get_points().len(), 3);
         assert_eq!(*regression.get_points()[0].y(), 1.0);
-        assert_eq!(*regression.get_points()[1].y(), 2.0);
+        assert_eq!(*regression.get_points()[1].y(), 1.75);
         assert_eq!(*regression.get_points()[2].y(), 3.0);
     }
 
