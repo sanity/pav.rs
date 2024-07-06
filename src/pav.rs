@@ -329,13 +329,13 @@ mod tests {
             Point::new(2.0, 1.5),
         ];
 
-        let regression = IsotonicRegression::new_ascending(points);
+        let regression = IsotonicRegression::new_ascending(points).unwrap();
         assert_eq!(regression.interpolate(1.5).unwrap(), 1.75);
     }
 
     #[test]
     fn isotonic_no_points() {
-        assert!(isotonic(&[], Direction::Ascending).is_empty());
+        assert!(isotonic::<f64>(&[], Direction::Ascending).is_empty());
     }
 
     #[test]
@@ -394,7 +394,7 @@ mod tests {
     #[test]
     fn test_interpolate() {
         let regression =
-            IsotonicRegression::new_ascending(&[Point::new(1.0, 5.0), Point::new(2.0, 7.0)]);
+            IsotonicRegression::new_ascending(&[Point::new(1.0, 5.0), Point::new(2.0, 7.0)]).unwrap();
         assert!((regression.interpolate(1.5).unwrap() - 6.0).abs() < f64::EPSILON);
     }
 
@@ -406,7 +406,7 @@ mod tests {
             Point::new(2.0, -1.0),
         ];
 
-        let regression = IsotonicRegression::new_ascending(points);
+        let regression = IsotonicRegression::new_ascending(points).unwrap();
         assert_eq!(
             regression.get_points(),
             &[Point::new_with_weight(
@@ -424,7 +424,7 @@ mod tests {
             Point::new(1.0, 2.0),
             Point::new(2.0, 1.0),
         ];
-        let regression = IsotonicRegression::new_descending(points);
+        let regression = IsotonicRegression::new_descending(points).unwrap();
         assert_eq!(
             regression.get_points(),
             &[Point::new_with_weight(1.0, 2.0 / 3.0, 3.0)]
@@ -437,13 +437,13 @@ mod tests {
             Point::new(0.0, 3.0),
             Point::new(1.0, 2.0),
             Point::new(2.0, 1.0),
-        ]);
+        ]).unwrap();
         assert_eq!(regression.interpolate(0.5).unwrap(), 2.5);
     }
 
     #[test]
     fn test_single_point_regression() {
-        let regression = IsotonicRegression::new_ascending(&[Point::new(1.0, 3.0)]);
+        let regression = IsotonicRegression::new_ascending(&[Point::new(1.0, 3.0)]).unwrap();
         assert_eq!(regression.interpolate(0.0).unwrap(), 3.0);
     }
 
@@ -454,7 +454,7 @@ mod tests {
             y: 2.0,
             weight: 3.0,
         };
-        assert_eq!(point.x(), 1.0);
+        assert_eq!(*point.x(), 1.0);
         assert_eq!(point.y(), 2.0);
         assert_eq!(point.weight(), 3.0);
     }
@@ -463,7 +463,7 @@ mod tests {
     fn test_add_points_1() {
         let points = &[Point::new(0.0, 1.0)];
 
-        let mut regression = IsotonicRegression::new_ascending(points);
+        let mut regression = IsotonicRegression::new_ascending(points).unwrap();
 
         regression.add_points(&[Point::new(1.0, 2.0)]);
 
@@ -480,7 +480,7 @@ mod tests {
     fn test_add_points_2() {
         let points = &[Point::new(1.0, 2.0)];
 
-        let mut regression = IsotonicRegression::new_ascending(points);
+        let mut regression = IsotonicRegression::new_ascending(points).unwrap();
 
         regression.add_points(&[Point::new(0.0, 3.0)]);
 
@@ -494,7 +494,7 @@ mod tests {
     fn test_add_equal_x() {
         let points = &[Point::new(0.0, 1.0)];
 
-        let mut regression = IsotonicRegression::new_ascending(points);
+        let mut regression = IsotonicRegression::new_ascending(points).unwrap();
 
         regression.add_points(&[Point::new(0.0, 2.0)]);
 
@@ -518,9 +518,9 @@ mod tests {
             ));
         }
 
-        let regression = IsotonicRegression::new_ascending(&points);
+        let regression = IsotonicRegression::new_ascending(&points).unwrap();
 
-        let mut regression2 = IsotonicRegression::new_ascending(&points[0..(points.len() / 2)]);
+        let mut regression2 = IsotonicRegression::new_ascending(&points[0..(points.len() / 2)]).unwrap();
 
         regression2.add_points(&points[(points.len() / 2)..points.len()]);
 
@@ -541,9 +541,9 @@ mod tests {
             ));
         }
 
-        let regression = IsotonicRegression::new_ascending(&points);
+        let regression = IsotonicRegression::new_ascending(&points).unwrap();
 
-        let mut regression2 = IsotonicRegression::new_ascending(&[]);
+        let mut regression2 = IsotonicRegression::new_ascending(&[]).unwrap();
 
         assert_eq!(regression2.get_points(), &[]);
 
@@ -554,7 +554,7 @@ mod tests {
 
     #[test]
     fn test_add_points_panic() {
-        let regression = IsotonicRegression::new_ascending(&[]);
+        let regression = IsotonicRegression::new_ascending(&[]).unwrap();
 
         assert_eq!(regression.interpolate(50.0), None);
     }
