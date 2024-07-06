@@ -62,12 +62,12 @@ impl Display for IsotonicRegression {
 
 impl IsotonicRegression {
     /// Find an ascending isotonic regression from a set of points
-    pub fn new_ascending(points: &[Point]) -> IsotonicRegression {
+    pub fn new_ascending(points: &[Point]) -> Result<IsotonicRegression, IsotonicRegressionError> {
         IsotonicRegression::new(points, Direction::Ascending, false)
     }
 
     /// Find a descending isotonic regression from a set of points
-    pub fn new_descending(points: &[Point]) -> IsotonicRegression {
+    pub fn new_descending(points: &[Point]) -> Result<IsotonicRegression, IsotonicRegressionError> {
         IsotonicRegression::new(points, Direction::Descending, false)
     }
 
@@ -83,7 +83,7 @@ impl IsotonicRegression {
             }
         })?;
 
-        IsotonicRegression {
+        Ok(IsotonicRegression {
             direction: direction.clone(),
             points: isotonic(points, direction),
             centroid_point: Centroid {
@@ -92,7 +92,7 @@ impl IsotonicRegression {
                 sum_weight: point_count,
             },
             intersect_origin,
-        }
+        })
     }
 
     /// Find the _y_ point at position `at_x` or None if the regression is empty
@@ -260,7 +260,7 @@ fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
             .then(b.y.partial_cmp(&a.y).unwrap_or(std::cmp::Ordering::Equal))
     });
 
-    let iso_points = merged_points.into_iter().fold(Vec::new(), |mut acc, mut point| {
+    let iso_points = merged_points.into_iter().fold(Vec::new(), |mut acc: Vec<Point>, mut point| {
         while let Some(last) = acc.last() {
             if last.y >= point.y {
                 point.merge_with(&acc.pop().unwrap());
