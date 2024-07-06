@@ -63,16 +63,14 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// # Examples
     ///
     /// ```
-    /// use crate::point::Point;
-    /// use crate::isotonic_regression::IsotonicRegression;
     ///
     /// let points = vec![
-    ///     Point::new(0.0, 1.0),
-    ///     Point::new(1.0, 2.0),
-    ///     Point::new(2.0, 1.5),
-    ///     Point::new(3.0, 3.0),
+    ///     super::Point::new(0.0, 1.0),
+    ///     super::Point::new(1.0, 2.0),
+    ///     super::Point::new(2.0, 1.5),
+    ///     super::Point::new(3.0, 3.0),
     /// ];
-    /// let regression = IsotonicRegression::new_ascending(&points).unwrap();
+    /// let regression = super::isotonic_regression::IsotonicRegressio::new_ascending(&points).unwrap();
     /// assert_eq!(regression.get_points().len(), 3);
     /// ```
     pub fn new_ascending(points: &[Point<T>]) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
