@@ -6,7 +6,9 @@ use thiserror::Error;
 
 /// Trait for coordinate types used in Point
 pub trait Coordinate:
-    Copy + Clone + PartialOrd + Add<Output = Self> + Sub<Output = Self> + Mul<f64, Output = Self> + Div<f64, Output = Self>
+    Copy + Clone + PartialOrd + PartialEq +
+    Add<Output = Self> + Sub<Output = Self> + Mul<f64, Output = Self> + Div<f64, Output = Self> +
+    AddAssign + Neg<Output = Self>
 {
     /// Returns the zero value for this coordinate type
     fn zero() -> Self;
@@ -115,8 +117,8 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// regression will intersect the origin (0,0) and all points must be >= 0 on both axes.
     fn new(points: &[Point<T>], direction: Direction, intersect_origin: bool) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
         let point_count: f64 = points.iter().map(|p| p.weight).sum();
-        let (sum_x, sum_y) = points.iter().try_fold((T::zero(), 0.0), |(sx, sy), point| {
-            if intersect_origin && (point.x.to_f64() < 0.0 || point.y < 0.0) {
+        let (sum_x, sum_y) = points.iter().try_fold((T::zero(), T::zero()), |(sx, sy), point| {
+            if intersect_origin && (point.x.to_f64() < 0.0 || point.y.to_f64() < 0.0) {
                 Err(IsotonicRegressionError::NegativePointWithIntersectOrigin)
             } else {
                 Ok((sx + point.x * point.weight, sy + point.y * point.weight))
@@ -203,9 +205,9 @@ impl<T: Coordinate> IsotonicRegression<T> {
     pub fn add_points(&mut self, points: &[Point<T>]) {
         for point in points {
             assert!(!self.intersect_origin || 
-                (point.x.to_f64() >= 0.0 && point.y >= 0.0), "With intersect_origin = true, all points must be >= 0 on both x and y axes" );
+                (point.x.to_f64() >= 0.0 && point.y.to_f64() >= 0.0), "With intersect_origin = true, all points must be >= 0 on both x and y axes" );
             self.centroid_point.sum_x = self.centroid_point.sum_x + point.x * point.weight;
-            self.centroid_point.sum_y += point.y * point.weight;
+            self.centroid_point.sum_y = self.centroid_point.sum_y + point.y * point.weight;
             self.centroid_point.sum_weight += point.weight;
         }
 
