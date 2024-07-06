@@ -168,13 +168,6 @@ impl<T: Coordinate> IsotonicRegression<T> {
         self.points = isotonic(&new_points, self.direction.clone());
     }
 
-    pub fn remove_points(&mut self, points: &[Point<T>]) {
-        let inverted_points: Vec<Point<T>> = points
-            .iter()
-            .map(|p| Point::new_with_weight(*p.x(), *p.y(), -p.weight()))
-            .collect();
-        self.add_points(&inverted_points);
-    }
 
     pub fn remove_points(&mut self, points: &[Point<T>]) {
         let inverted_points: Vec<Point<T>> = points
