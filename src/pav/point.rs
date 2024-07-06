@@ -1,5 +1,4 @@
 use serde::Serialize;
-use std::fmt::Display;
 use super::coordinate::Coordinate;
 
 /// A point in 2D cartesian space
