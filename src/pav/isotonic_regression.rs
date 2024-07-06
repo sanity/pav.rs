@@ -222,8 +222,8 @@ fn isotonic<T: Coordinate>(points: &[Point<T>], direction: Direction) -> Vec<Poi
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use rand::Rng;
+    use super::IsotonicRegression;
+    use super::Point;
 
     // ... (include all the tests from the original file here)
 }
