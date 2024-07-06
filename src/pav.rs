@@ -457,7 +457,7 @@ mod tests {
             weight: 3.0,
         };
         assert_eq!(*point.x(), 1.0);
-        assert_eq!(point.y(), 2.0);
+        assert_eq!(*point.y(), 2.0);
         assert_eq!(point.weight(), 3.0);
     }
 
