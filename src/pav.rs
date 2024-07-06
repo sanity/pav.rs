@@ -1,8 +1,32 @@
 use std::fmt::{Display, Formatter};
+use std::ops::{Add, Div, Mul, Sub};
 
 use ordered_float::OrderedFloat;
 use serde::Serialize;
 use thiserror::Error;
+
+/// Trait for coordinate types used in Point
+pub trait Coordinate:
+    Copy + Clone + PartialOrd + Add<Output = Self> + Sub<Output = Self> + Mul<f64, Output = Self> + Div<f64, Output = Self>
+{
+    fn zero() -> Self;
+    fn to_f64(&self) -> f64;
+    fn from_f64(value: f64) -> Self;
+}
+
+impl Coordinate for f64 {
+    fn zero() -> Self {
+        0.0
+    }
+
+    fn to_f64(&self) -> f64 {
+        *self
+    }
+
+    fn from_f64(value: f64) -> Self {
+        value
+    }
+}
 
 /// Errors that can occur during isotonic regression
 #[derive(Error, Debug)]
@@ -16,24 +40,34 @@ pub enum IsotonicRegressionError {
 /// centroid point of the original set.
 
 #[derive(Debug, Clone, Serialize)]
-pub struct IsotonicRegression {
+pub struct IsotonicRegression<T: Coordinate> {
     direction: Direction,
-    points: Vec<Point>,
-    centroid_point: Centroid,
+    points: Vec<Point<T>>,
+    centroid_point: Centroid<T>,
     intersect_origin: bool,
 }
 
 /// A point in 2D cartesian space
-#[derive(Debug, PartialEq, Copy, Clone, Serialize, Default)]
-pub struct Point {
-    x: f64,
+#[derive(Debug, PartialEq, Copy, Clone, Serialize)]
+pub struct Point<T: Coordinate> {
+    x: T,
     y: f64,
     weight: f64,
 }
 
+impl<T: Coordinate> Default for Point<T> {
+    fn default() -> Self {
+        Point {
+            x: T::zero(),
+            y: 0.0,
+            weight: 1.0,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize)]
-struct Centroid {
-    sum_x: f64,
+struct Centroid<T: Coordinate> {
+    sum_x: T,
     sum_y: f64,
     sum_weight: f64,
 }
@@ -62,26 +96,26 @@ impl Display for IsotonicRegression {
     }
 }
 
-impl IsotonicRegression {
+impl<T: Coordinate> IsotonicRegression<T> {
     /// Find an ascending isotonic regression from a set of points
-    pub fn new_ascending(points: &[Point]) -> Result<IsotonicRegression, IsotonicRegressionError> {
+    pub fn new_ascending(points: &[Point<T>]) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
         IsotonicRegression::new(points, Direction::Ascending, false)
     }
 
     /// Find a descending isotonic regression from a set of points
-    pub fn new_descending(points: &[Point]) -> Result<IsotonicRegression, IsotonicRegressionError> {
+    pub fn new_descending(points: &[Point<T>]) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
         IsotonicRegression::new(points, Direction::Descending, false)
     }
 
     /// Find an isotonic regression in the specified direction. If `intersect_origin` is true, the
     /// regression will intersect the origin (0,0) and all points must be >= 0 on both axes.
-    fn new(points: &[Point], direction: Direction, intersect_origin: bool) -> Result<IsotonicRegression, IsotonicRegressionError> {
+    fn new(points: &[Point<T>], direction: Direction, intersect_origin: bool) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
         let point_count: f64 = points.iter().map(Point::weight).sum();
-        let (sum_x, sum_y) = points.iter().try_fold((0.0, 0.0), |(sx, sy), point| {
-            if intersect_origin && (point.x < 0.0 || point.y < 0.0) {
+        let (sum_x, sum_y) = points.iter().try_fold((T::zero(), 0.0), |(sx, sy), point| {
+            if intersect_origin && (point.x.to_f64() < 0.0 || point.y < 0.0) {
                 Err(IsotonicRegressionError::NegativePointWithIntersectOrigin)
             } else {
-                Ok((sx + point.x * point.weight, sy + point.y * point.weight))
+                Ok((sx + point.x * point.weight(), sy + point.y * point.weight))
             }
         })?;
 
