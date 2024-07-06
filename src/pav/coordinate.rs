@@ -57,3 +57,23 @@ impl Coordinate for f64 {
         (self + other) / 2.0
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_f64_coordinate() {
+        let a: f64 = 2.5;
+        let b: f64 = -1.5;
+
+        assert_eq!(f64::zero(), 0.0);
+        assert_eq!(f64::one(), 1.0);
+        assert_eq!(a.to_float(), 2.5);
+        assert_eq!(f64::from_float(3.14), 3.14);
+        assert_eq!(a.abs_diff(&b), 4.0);
+        assert!(!a.is_negative());
+        assert!(b.is_negative());
+        assert_eq!(a.average(&b), 0.5);
+    }
+}
