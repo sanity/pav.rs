@@ -217,8 +217,8 @@ fn isotonic<T: Coordinate>(points: &[Point<T>], direction: Direction) -> Vec<Poi
 
     let iso_points = merged_points.into_iter().fold(Vec::new(), |mut acc: Vec<Point<T>>, mut point| {
         while let Some(last) = acc.last() {
-            if (direction == Direction::Ascending && last.y() >= point.y()) ||
-               (direction == Direction::Descending && last.y() <= point.y()) {
+            if (direction == Direction::Ascending && last.y() > point.y()) ||
+               (direction == Direction::Descending && last.y() < point.y()) {
                 point.merge_with(&acc.pop().unwrap());
             } else {
                 break;
