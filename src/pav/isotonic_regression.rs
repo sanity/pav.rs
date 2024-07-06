@@ -30,6 +30,7 @@ struct Centroid<T: Coordinate> {
 }
 
 #[derive(Debug, Clone, Serialize)]
+#[derive(PartialEq)]
 enum Direction {
     Ascending,
     Descending,
@@ -171,10 +172,6 @@ impl<T: Coordinate> IsotonicRegression<T> {
 
     /// Remove points from the regression
     pub fn remove_points(&mut self, points: &[Point<T>]) {
-        let inverted_points: Vec<Point<T>> = points
-            .iter()
-            .map(|p| Point::new_with_weight(*p.x(), *p.y(), -p.weight()))
-            .collect();
         for point in points {
             assert!(!self.intersect_origin || 
                 (!point.x().is_sign_negative() && !point.y().is_sign_negative()), "With intersect_origin = true, all points must be >= 0 on both x and y axes" );
