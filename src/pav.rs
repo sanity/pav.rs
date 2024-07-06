@@ -86,7 +86,7 @@ pub struct IsotonicRegression<T: Coordinate> {
 pub struct Point<T: Coordinate> {
     x: T,
     y: T,
-    weight: f64,
+    weight: T,
 }
 
 impl<T: Coordinate> Default for Point<T> {
@@ -103,7 +103,7 @@ impl<T: Coordinate> Default for Point<T> {
 struct Centroid<T: Coordinate> {
     sum_x: T,
     sum_y: T,
-    sum_weight: f64,
+    sum_weight: T,
 }
 
 #[derive(Debug, Clone, Serialize)]
