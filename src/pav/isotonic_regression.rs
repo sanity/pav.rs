@@ -222,8 +222,19 @@ fn isotonic<T: Coordinate>(points: &[Point<T>], direction: Direction) -> Vec<Poi
 
 #[cfg(test)]
 mod tests {
-    use super::IsotonicRegression;
-    use super::Point;
+    // No imports needed here, we'll use full paths in the tests
 
-    // ... (include all the tests from the original file here)
+    #[test]
+    fn usage_example() {
+        let points = &[
+            super::Point::new(0.0, 1.0),
+            super::Point::new(1.0, 2.0),
+            super::Point::new(2.0, 1.5),
+        ];
+
+        let regression = super::IsotonicRegression::new_ascending(points).unwrap();
+        assert_eq!(regression.interpolate(1.5).unwrap(), 1.75);
+    }
+
+    // ... (update all other tests to use super::IsotonicRegression and super::Point)
 }
