@@ -144,12 +144,11 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// Find an isotonic regression in the specified direction. If `intersect_origin` is true, the
     /// regression will intersect the origin (0,0) and all points must be >= 0 on both axes.
     fn new(points: &[Point<T>], direction: Direction, intersect_origin: bool) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
-        let point_count = T::from_float(points.iter().map(|p| p.weight).sum());
-        let (sum_x, sum_y) = points.iter().try_fold((T::zero(), T::zero()), |(sx, sy), point| {
+        let (sum_x, sum_y, sum_weight) = points.iter().try_fold((T::zero(), T::zero(), T::zero()), |(sx, sy, sw), point| {
             if intersect_origin && (point.x.is_negative() || point.y.is_negative()) {
                 Err(IsotonicRegressionError::NegativePointWithIntersectOrigin)
             } else {
-                Ok((sx + point.x * T::from_float(point.weight), sy + point.y * T::from_float(point.weight)))
+                Ok((sx + point.x * point.weight, sy + point.y * point.weight, sw + point.weight))
             }
         })?;
 
@@ -159,7 +158,7 @@ impl<T: Coordinate> IsotonicRegression<T> {
             centroid_point: Centroid {
                 sum_x,
                 sum_y,
-                sum_weight: point_count,
+                sum_weight,
             },
             intersect_origin,
         })
@@ -218,13 +217,13 @@ impl<T: Coordinate> IsotonicRegression<T> {
 
     /// Retrieve the mean point of the original point set
     pub fn get_centroid_point(&self) -> Option<Point<T>> {
-        if self.centroid_point.sum_weight == 0.0 {
+        if self.centroid_point.sum_weight == T::zero() {
             None
         } else {
             Some(Point {
                 x: self.centroid_point.sum_x / self.centroid_point.sum_weight,
                 y: self.centroid_point.sum_y / self.centroid_point.sum_weight,
-                weight: 1.0,
+                weight: T::one(),
             })
         }
     }
@@ -233,10 +232,10 @@ impl<T: Coordinate> IsotonicRegression<T> {
     pub fn add_points(&mut self, points: &[Point<T>]) {
         for point in points {
             assert!(!self.intersect_origin || 
-                (point.x.to_f64() >= 0.0 && point.y.to_f64() >= 0.0), "With intersect_origin = true, all points must be >= 0 on both x and y axes" );
+                (!point.x.is_negative() && !point.y.is_negative()), "With intersect_origin = true, all points must be >= 0 on both x and y axes" );
             self.centroid_point.sum_x = self.centroid_point.sum_x + point.x * point.weight;
             self.centroid_point.sum_y = self.centroid_point.sum_y + point.y * point.weight;
-            self.centroid_point.sum_weight += point.weight;
+            self.centroid_point.sum_weight = self.centroid_point.sum_weight + point.weight;
         }
 
         let mut new_points = self.points.clone();
@@ -269,11 +268,11 @@ impl<T: Coordinate> IsotonicRegression<T> {
 impl<T: Coordinate> Point<T> {
     /// Create a new Point
     pub fn new(x: T, y: T) -> Point<T> {
-        Point { x, y, weight: 1.0 }
+        Point { x, y, weight: T::one() }
     }
 
     /// Create a new Point with a specified weight
-    pub fn new_with_weight(x: T, y: T, weight: f64) -> Point<T> {
+    pub fn new_with_weight(x: T, y: T, weight: T) -> Point<T> {
         Point { x, y, weight }
     }
 
@@ -291,14 +290,15 @@ impl<T: Coordinate> Point<T> {
     }
 
     /// The weight of the point (initially 1.0)
-    pub fn weight(&self) -> f64 {
-        self.weight
+    pub fn weight(&self) -> &T {
+        &self.weight
     }
 
     fn merge_with(&mut self, other: &Point<T>) {
-        self.x = (self.x * self.weight + other.x * other.weight) / (self.weight + other.weight);
-        self.y = (self.y * self.weight + other.y * other.weight) / (self.weight + other.weight);
-        self.weight += other.weight;
+        let total_weight = self.weight + other.weight;
+        self.x = (self.x * self.weight + other.x * other.weight) / total_weight;
+        self.y = (self.y * self.weight + other.y * other.weight) / total_weight;
+        self.weight = total_weight;
     }
 }
 
