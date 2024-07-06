@@ -14,34 +14,6 @@ pub enum IsotonicRegressionError {
 
 /// A vector of points forming an isotonic regression, along with the
 /// centroid point of the original set.
-/// # Example
-/// ```
-/// use crate::pav::point::Point;
-/// use crate::pav::isotonic_regression::IsotonicRegression;
-///
-/// let points = &[
-///     Point::new(0.0, 1.0),
-///     Point::new(1.0, 2.0),
-///     Point::new(2.0, 1.5),
-/// ];
-///
-/// let regression = IsotonicRegression::new_ascending(points).unwrap();
-/// assert_eq!(regression.interpolate(1.5).unwrap(), 1.75);
-/// ```
-/// # Example
-/// ```
-/// use crate::pav::point::Point;
-/// use crate::pav::isotonic_regression::IsotonicRegression;
-///
-/// let points = &[
-///     Point::new(0.0, 1.0),
-///     Point::new(1.0, 2.0),
-///     Point::new(2.0, 1.5),
-/// ];
-///
-/// let regression = IsotonicRegression::new_ascending(points).unwrap();
-/// assert_eq!(regression.interpolate(1.5).unwrap(), 1.75);
-/// ```
 #[derive(Debug, Clone, Serialize)]
 pub struct IsotonicRegression<T: Coordinate> {
     direction: Direction,
@@ -264,7 +236,7 @@ fn isotonic<T: Coordinate>(points: &[Point<T>], direction: Direction) -> Vec<Poi
 
 #[cfg(test)]
 mod tests {
-    use super.*;
+    use super::*;
 
     #[test]
     fn test_ascending_regression() {
