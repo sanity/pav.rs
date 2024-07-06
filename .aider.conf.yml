@@ -1,0 +1,3 @@
+dark-mode: true
+test-cmd: RUSTFLAGS="-D warnings" cargo check
+auto-test: true

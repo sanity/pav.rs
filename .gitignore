@@ -12,3 +12,6 @@ Cargo.lock
 /.idea/
 
 mutants.out*
+
+.aider.*
+.aider*
