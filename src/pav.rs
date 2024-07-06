@@ -74,7 +74,7 @@ impl<T: Coordinate> Default for Point<T> {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 struct Centroid<T: Coordinate> {
     sum_x: T,
-    sum_y: f64,
+    sum_y: T,
     sum_weight: f64,
 }
 
