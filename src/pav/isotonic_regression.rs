@@ -175,7 +175,21 @@ impl<T: Coordinate> IsotonicRegression<T> {
             .iter()
             .map(|p| Point::new_with_weight(*p.x(), *p.y(), -p.weight()))
             .collect();
-        self.add_points(&inverted_points);
+        for point in points {
+            assert!(!self.intersect_origin || 
+                (!point.x().is_sign_negative() && !point.y().is_sign_negative()), "With intersect_origin = true, all points must be >= 0 on both x and y axes" );
+            self.centroid_point.sum_x = self.centroid_point.sum_x - *point.x() * T::from_float(point.weight());
+            self.centroid_point.sum_y = self.centroid_point.sum_y - *point.y() * T::from_float(point.weight());
+            self.centroid_point.sum_weight = self.centroid_point.sum_weight - point.weight();
+        }
+
+        let mut new_points = self.points.clone();
+        for point in points {
+            if let Some(pos) = new_points.iter().position(|p| p.x() == point.x() && p.y() == point.y() && p.weight() == point.weight()) {
+                new_points.remove(pos);
+            }
+        }
+        self.points = isotonic(&new_points, self.direction.clone());
     }
 
     /// How many points?
@@ -206,7 +220,8 @@ fn isotonic<T: Coordinate>(points: &[Point<T>], direction: Direction) -> Vec<Poi
 
     let iso_points = merged_points.into_iter().fold(Vec::new(), |mut acc: Vec<Point<T>>, mut point| {
         while let Some(last) = acc.last() {
-            if last.y() >= point.y() {
+            if (direction == Direction::Ascending && last.y() >= point.y()) ||
+               (direction == Direction::Descending && last.y() <= point.y()) {
                 point.merge_with(&acc.pop().unwrap());
             } else {
                 break;
