@@ -204,7 +204,7 @@ impl<T: Coordinate> IsotonicRegression<T> {
 fn isotonic<T: Coordinate>(points: &[Point<T>], direction: Direction) -> Vec<Point<T>> {
     let mut merged_points: Vec<Point<T>> = match direction {
         Direction::Ascending => points.to_vec(),
-        Direction::Descending => points.iter().map(|p| Point::new_with_weight(*p.x(), -*p.y(), p.weight())).collect(),
+        Direction::Descending => points.iter().map(|p| Point::new_with_weight(*p.x(), *p.y(), p.weight())).collect(),
     };
 
     // Sort the points by x, and if x is equal, sort by y descending to ensure that points with the same x
@@ -230,7 +230,7 @@ fn isotonic<T: Coordinate>(points: &[Point<T>], direction: Direction) -> Vec<Poi
 
     match direction {
         Direction::Ascending => iso_points,
-        Direction::Descending => iso_points.into_iter().map(|p| Point::new_with_weight(*p.x(), -*p.y(), p.weight())).collect(),
+        Direction::Descending => iso_points,
     }
 }
 
