@@ -1,7 +1,6 @@
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Div, Mul, Sub};
 
-use ordered_float::OrderedFloat;
 use serde::Serialize;
 use thiserror::Error;
 
@@ -9,8 +8,13 @@ use thiserror::Error;
 pub trait Coordinate:
     Copy + Clone + PartialOrd + Add<Output = Self> + Sub<Output = Self> + Mul<f64, Output = Self> + Div<f64, Output = Self>
 {
+    /// Returns the zero value for this coordinate type
     fn zero() -> Self;
+
+    /// Converts the coordinate to an f64
     fn to_f64(&self) -> f64;
+
+    /// Creates a coordinate from an f64
     fn from_f64(value: f64) -> Self;
 }
 
