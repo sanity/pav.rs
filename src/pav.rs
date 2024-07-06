@@ -4,8 +4,10 @@ use ordered_float::OrderedFloat;
 use serde::Serialize;
 use thiserror::Error;
 
+/// Errors that can occur during isotonic regression
 #[derive(Error, Debug)]
 pub enum IsotonicRegressionError {
+    /// Error when a negative point is encountered with intersect_origin set to true
     #[error("With intersect_origin = true, all points must be >= 0 on both x and y axes")]
     NegativePointWithIntersectOrigin,
 }
