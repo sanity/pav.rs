@@ -68,7 +68,7 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// regression will intersect the origin (0,0) and all points must be >= 0 on both axes.
     fn new(points: &[Point<T>], direction: Direction, intersect_origin: bool) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
         let (sum_x, sum_y, sum_weight) = points.iter().try_fold((T::zero(), T::zero(), 0.0), |(sx, sy, sw), point| {
-            if intersect_origin && (point.x().is_negative() || point.y().is_negative()) {
+            if intersect_origin && (point.x().is_sign_negative() || point.y().is_sign_negative()) {
                 Err(IsotonicRegressionError::NegativePointWithIntersectOrigin)
             } else {
                 Ok((sx + *point.x() * T::from_float(point.weight()), sy + *point.y() * T::from_float(point.weight()), sw + point.weight()))
@@ -155,7 +155,7 @@ impl<T: Coordinate> IsotonicRegression<T> {
     pub fn add_points(&mut self, points: &[Point<T>]) {
         for point in points {
             assert!(!self.intersect_origin || 
-                (!point.x().is_negative() && !point.y().is_negative()), "With intersect_origin = true, all points must be >= 0 on both x and y axes" );
+                (!point.x().is_sign_negative() && !point.y().is_sign_negative()), "With intersect_origin = true, all points must be >= 0 on both x and y axes" );
             self.centroid_point.sum_x = self.centroid_point.sum_x + *point.x() * T::from_float(point.weight());
             self.centroid_point.sum_y = self.centroid_point.sum_y + *point.y() * T::from_float(point.weight());
             self.centroid_point.sum_weight = self.centroid_point.sum_weight + point.weight();
