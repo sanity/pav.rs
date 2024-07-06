@@ -6,6 +6,7 @@ use super::point::{Point, interpolate_two_points};
 
 /// Errors that can occur during isotonic regression
 #[derive(Error, Debug)]
+#[allow(dead_code)]
 pub enum IsotonicRegressionError {
     /// Error when a negative point is encountered with intersect_origin set to true
     #[error("With intersect_origin = true, all points must be >= 0 on both x and y axes")]
@@ -31,6 +32,7 @@ struct Centroid<T: Coordinate> {
 
 #[derive(Debug, Clone, Serialize)]
 #[derive(PartialEq)]
+#[allow(dead_code)]
 enum Direction {
     Ascending,
     Descending,
@@ -54,6 +56,7 @@ impl<T: Coordinate + Display> Display for IsotonicRegression<T> {
     }
 }
 
+#[allow(dead_code)]
 impl<T: Coordinate> IsotonicRegression<T> {
     /// Find an ascending isotonic regression from a set of points
     pub fn new_ascending(points: &[Point<T>]) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
@@ -201,6 +204,7 @@ impl<T: Coordinate> IsotonicRegression<T> {
     }
 }
 
+#[allow(dead_code)]
 fn isotonic<T: Coordinate>(points: &[Point<T>], direction: Direction) -> Vec<Point<T>> {
     let mut merged_points: Vec<Point<T>> = match direction {
         Direction::Ascending => points.to_vec(),

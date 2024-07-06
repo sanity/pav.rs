@@ -50,7 +50,7 @@ impl Coordinate for f64 {
     }
 
     fn is_sign_negative(&self) -> bool {
-        self.is_sign_negative()
+        *self < Self::zero()
     }
 
     fn average(&self, other: &Self) -> Self {

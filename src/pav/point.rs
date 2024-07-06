@@ -59,6 +59,7 @@ impl<T: Coordinate> From<(T, T)> for Point<T> {
     }
 }
 
+#[allow(dead_code)]
 pub(crate) fn interpolate_two_points<T: Coordinate>(a: &Point<T>, b: &Point<T>, at_x: T) -> T {
     let prop = (at_x - a.x) / (b.x - a.x);
     a.y + (b.y - a.y) * prop
