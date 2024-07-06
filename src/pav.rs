@@ -2,6 +2,13 @@ use std::fmt::{Display, Formatter};
 
 use ordered_float::OrderedFloat;
 use serde::Serialize;
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum IsotonicRegressionError {
+    #[error("With intersect_origin = true, all points must be >= 0 on both x and y axes")]
+    NegativePointWithIntersectOrigin,
+}
 
 /// A vector of points forming an isotonic regression, along with the
 /// centroid point of the original set.
@@ -15,7 +22,7 @@ pub struct IsotonicRegression {
 }
 
 /// A point in 2D cartesian space
-#[derive(Debug, PartialEq, Copy, Clone, Serialize)]
+#[derive(Debug, PartialEq, Copy, Clone, Serialize, Default)]
 pub struct Point {
     x: f64,
     y: f64,
@@ -65,19 +72,16 @@ impl IsotonicRegression {
     }
 
     /// Find an isotonic regression in the specified direction. If `intersect_origin` is true, the
-    /// regression will intersect the origin (0,0) and all points must be >= 0 on both axes to
-    /// avoid a panic.
-    fn new(points: &[Point], direction: Direction, intersect_origin : bool) -> IsotonicRegression {
+    /// regression will intersect the origin (0,0) and all points must be >= 0 on both axes.
+    fn new(points: &[Point], direction: Direction, intersect_origin: bool) -> Result<IsotonicRegression, IsotonicRegressionError> {
         let point_count: f64 = points.iter().map(Point::weight).sum();
-        let mut sum_x: f64 = 0.0;
-        let mut sum_y: f64 = 0.0;
-        for point in points {
-            assert!(!intersect_origin || 
-                (point.x >= 0.0 && point.y >= 0.0), "With intersect_origin = true, all points must be >= 0 on both x and y axes" );
-                
-            sum_x += point.x * point.weight;
-            sum_y += point.y * point.weight;
-        }
+        let (sum_x, sum_y) = points.iter().try_fold((0.0, 0.0), |(sx, sy), point| {
+            if intersect_origin && (point.x < 0.0 || point.y < 0.0) {
+                Err(IsotonicRegressionError::NegativePointWithIntersectOrigin)
+            } else {
+                Ok((sx + point.x * point.weight, sy + point.y * point.weight))
+            }
+        })?;
 
         IsotonicRegression {
             direction: direction.clone(),
@@ -92,6 +96,7 @@ impl IsotonicRegression {
     }
 
     /// Find the _y_ point at position `at_x` or None if the regression is empty
+    #[must_use]
     pub fn interpolate(&self, at_x: f64) -> Option<f64> {
         if self.points.is_empty() {
             return None;
@@ -230,6 +235,12 @@ impl Point {
     }
 }
 
+impl From<(f64, f64)> for Point {
+    fn from(tuple: (f64, f64)) -> Self {
+        Point::new(tuple.0, tuple.1)
+    }
+}
+
 fn interpolate_two_points(a: &Point, b: &Point, at_x: f64) -> f64 {
     let prop = (at_x - (a.x)) / (b.x - a.x);
     (b.y - a.y) * prop + a.y
@@ -249,18 +260,17 @@ fn isotonic(points: &[Point], direction: Direction) -> Vec<Point> {
             .then(b.y.partial_cmp(&a.y).unwrap_or(std::cmp::Ordering::Equal))
     });
 
-    let mut iso_points: Vec<Point> = Vec::new();
-    for point in merged_points.iter() {
-        let mut new_point = *point;
-        while let Some(last_point) = iso_points.last() {
-            if last_point.y < new_point.y {
+    let iso_points = merged_points.into_iter().fold(Vec::new(), |mut acc, mut point| {
+        while let Some(last) = acc.last() {
+            if last.y >= point.y {
+                point.merge_with(&acc.pop().unwrap());
+            } else {
                 break;
             }
-            let last_to_repl = iso_points.pop().unwrap();
-            new_point.merge_with(&last_to_repl);
         }
-        iso_points.push(new_point);
-    }
+        acc.push(point);
+        acc
+    });
 
     return match direction {
         Direction::Ascending => iso_points,
