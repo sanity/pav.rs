@@ -40,8 +40,13 @@
 //! If you have an hour to spare, and are interested in learning more about how online advertising works - you should check out [this lecture](https://vimeo.com/137999578)
 //! that I gave in 2015 where I explain how we were able to use pair adjacent violators to solve some fun problems.
 
+/// Module containing the `Coordinate` trait definition.
 pub mod coordinate;
+
+/// Module containing the `Point` struct definition.
 pub mod point;
+
+/// Module containing the `IsotonicRegression` struct and implementation.
 pub mod isotonic_regression;
 
 pub use coordinate::Coordinate;
