@@ -1,5 +1,7 @@
 #![warn(missing_docs)]
 
+//! Pair adjacent violators algorithm for isotonic regression
+//!
 //! [Pair Adjacent Violators](https://onlinelibrary.wiley.com/doi/pdf/10.1002/9781118763155.app3) algorithm for
 //! [isotonic regression](https://en.wikipedia.org/wiki/Isotonic_regression)
 //!
@@ -45,5 +47,3 @@ pub mod isotonic_regression;
 pub use coordinate::Coordinate;
 pub use point::Point;
 pub use isotonic_regression::IsotonicRegression;
-
-/// Pair adjacent violators algorithm for isotonic regression
