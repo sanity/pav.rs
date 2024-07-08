@@ -39,4 +39,11 @@
 //! that I gave in 2015 where I explain how we were able to use pair adjacent violators to solve some fun problems.
 
 /// Pair adjacent violators algorithm for isotonic regression
-pub mod pav;
+
+mod coordinate;
+mod point;
+mod isotonic_regression;
+
+pub use isotonic_regression::IsotonicRegression;
+pub use point::Point;
+pub use coordinate::Coordinate;
