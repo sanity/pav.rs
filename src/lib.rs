@@ -38,12 +38,12 @@
 //! If you have an hour to spare, and are interested in learning more about how online advertising works - you should check out [this lecture](https://vimeo.com/137999578)
 //! that I gave in 2015 where I explain how we were able to use pair adjacent violators to solve some fun problems.
 
-/// Pair adjacent violators algorithm for isotonic regression
+pub mod coordinate;
+pub mod point;
+pub mod isotonic_regression;
 
-mod coordinate;
-mod point;
-mod isotonic_regression;
-
-pub use isotonic_regression::IsotonicRegression;
-pub use point::Point;
 pub use coordinate::Coordinate;
+pub use point::Point;
+pub use isotonic_regression::IsotonicRegression;
+
+/// Pair adjacent violators algorithm for isotonic regression
