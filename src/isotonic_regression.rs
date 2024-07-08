@@ -1,8 +1,8 @@
 use serde::Serialize;
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
-use super::coordinate::Coordinate;
-use super::point::{Point, interpolate_two_points};
+use crate::coordinate::Coordinate;
+use crate::point::{Point, interpolate_two_points};
 
 /// Errors that can occur during isotonic regression
 #[derive(Error, Debug)]

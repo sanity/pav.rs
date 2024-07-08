@@ -1,5 +1,5 @@
 use serde::Serialize;
-use super::coordinate::Coordinate;
+use crate::coordinate::Coordinate;
 
 /// A point in 2D cartesian space
 #[derive(Debug, PartialEq, Copy, Clone, Serialize)]
