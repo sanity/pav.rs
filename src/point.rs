@@ -25,7 +25,7 @@ impl<T: Coordinate> Point<T> {
     /// # Examples
     ///
     /// ```
-    /// let point = crate::point::Point::new(1.0, 2.0);
+    /// use pav_regression::Point;
     ///
     /// let point = Point::new(1.0, 2.0);
     /// assert_eq!(*point.x(), 1.0);
@@ -41,7 +41,7 @@ impl<T: Coordinate> Point<T> {
     /// # Examples
     ///
     /// ```
-    /// let point = crate::point::Point::new_with_weight(1.0, 2.0, 0.5);
+    /// use pav_regression::Point;
     ///
     /// let point = Point::new_with_weight(1.0, 2.0, 0.5);
     /// assert_eq!(*point.x(), 1.0);
@@ -57,7 +57,7 @@ impl<T: Coordinate> Point<T> {
     /// # Examples
     ///
     /// ```
-    /// let point = crate::point::Point::new(1.0, 2.0);
+    /// use pav_regression::Point;
     ///
     /// let point = Point::new(1.0, 2.0);
     /// assert_eq!(*point.x(), 1.0);
@@ -71,7 +71,7 @@ impl<T: Coordinate> Point<T> {
     /// # Examples
     ///
     /// ```
-    /// let point = crate::point::Point::new(1.0, 2.0);
+    /// use pav_regression::Point;
     ///
     /// let point = Point::new(1.0, 2.0);
     /// assert_eq!(*point.y(), 2.0);
@@ -85,7 +85,7 @@ impl<T: Coordinate> Point<T> {
     /// # Examples
     ///
     /// ```
-    /// let point = crate::point::Point::new(1.0, 2.0);
+    /// use pav_regression::Point;
     ///
     /// let point = Point::new(1.0, 2.0);
     /// assert_eq!(point.weight(), 1.0);
@@ -99,8 +99,7 @@ impl<T: Coordinate> Point<T> {
     /// # Examples
     ///
     /// ```
-    /// let mut point1 = crate::point::Point::new_with_weight(1.0, 2.0, 0.5);
-    /// let point2 = crate::point::Point::new_with_weight(3.0, 4.0, 1.5);
+    /// use pav_regression::Point;
     ///
     /// let mut point1 = Point::new_with_weight(1.0, 2.0, 0.5);
     /// let point2 = Point::new_with_weight(3.0, 4.0, 1.5);
@@ -129,8 +128,7 @@ impl<T: Coordinate> From<(T, T)> for Point<T> {
 /// # Examples
 ///
 /// ```
-/// let point1 = crate::point::Point::new(0.0, 0.0);
-/// let point2 = crate::point::Point::new(2.0, 2.0);
+/// use pav_regression::{Point, interpolate_two_points};
 ///
 /// let point1 = Point::new(0.0, 0.0);
 /// let point2 = Point::new(2.0, 2.0);

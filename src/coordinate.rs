@@ -11,7 +11,7 @@ pub trait Coordinate:
     /// # Examples
     ///
     /// ```
-    /// use crate::coordinate::Coordinate;
+    /// use pav_regression::Coordinate;
     ///
     /// let zero = f64::zero();
     /// assert_eq!(zero, 0.0);
@@ -23,7 +23,7 @@ pub trait Coordinate:
     /// # Examples
     ///
     /// ```
-    /// use crate::coordinate::Coordinate;
+    /// use pav_regression::Coordinate;
     ///
     /// let one = f64::one();
     /// assert_eq!(one, 1.0);
@@ -35,7 +35,7 @@ pub trait Coordinate:
     /// # Examples
     ///
     /// ```
-    /// use crate::coordinate::Coordinate;
+    /// use pav_regression::Coordinate;
     ///
     /// let value: f64 = 3.14;
     /// assert_eq!(value.to_float(), 3.14);
@@ -47,7 +47,7 @@ pub trait Coordinate:
     /// # Examples
     ///
     /// ```
-    /// use crate::coordinate::Coordinate;
+    /// use pav_regression::Coordinate;
     ///
     /// let value = f64::from_float(3.14);
     /// assert_eq!(value, 3.14);
@@ -59,7 +59,7 @@ pub trait Coordinate:
     /// # Examples
     ///
     /// ```
-    /// use crate::coordinate::Coordinate;
+    /// use pav_regression::Coordinate;
     ///
     /// let a: f64 = 2.5;
     /// let b: f64 = -1.5;
@@ -72,7 +72,7 @@ pub trait Coordinate:
     /// # Examples
     ///
     /// ```
-    /// use crate::coordinate::Coordinate;
+    /// use pav_regression::Coordinate;
     ///
     /// let a: f64 = -1.0;
     /// assert!(a.is_sign_negative());
@@ -87,7 +87,7 @@ pub trait Coordinate:
     /// # Examples
     ///
     /// ```
-    /// use crate::coordinate::Coordinate;
+    /// use pav_regression::Coordinate;
     ///
     /// let a: f64 = 2.0;
     /// let b: f64 = 4.0;

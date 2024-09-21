@@ -63,14 +63,15 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// # Examples
     ///
     /// ```
+    /// use pav_regression::{Point, IsotonicRegression};
     ///
     /// let points = vec![
-    ///     super::point::Point::new(0.0, 1.0),
-    ///     super::point::Point::new(1.0, 2.0),
-    ///     super::point::Point::new(2.0, 1.5),
-    ///     super::point::Point::new(3.0, 3.0),
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(1.0, 2.0),
+    ///     Point::new(2.0, 1.5),
+    ///     Point::new(3.0, 3.0),
     /// ];
-    /// let regression = super::isotonic_regression::IsotonicRegression::new_ascending(&points).unwrap();
+    /// let regression = IsotonicRegression::new_ascending(&points).unwrap();
     /// assert_eq!(regression.get_points().len(), 3);
     /// ```
     pub fn new_ascending(points: &[Point<T>]) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
@@ -82,13 +83,15 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// # Examples
     ///
     /// ```
+    /// use pav_regression::{Point, IsotonicRegression};
+    ///
     /// let points = vec![
-    ///     super::point::Point::new(0.0, 3.0),
-    ///     super::point::Point::new(1.0, 2.0),
-    ///     super::point::Point::new(2.0, 2.5),
-    ///     super::point::Point::new(3.0, 1.0),
+    ///     Point::new(0.0, 3.0),
+    ///     Point::new(1.0, 2.0),
+    ///     Point::new(2.0, 2.5),
+    ///     Point::new(3.0, 1.0),
     /// ];
-    /// let regression = super::isotonic_regression::IsotonicRegression::new_descending(&points).unwrap();
+    /// let regression = IsotonicRegression::new_descending(&points).unwrap();
     /// assert_eq!(regression.get_points().len(), 3);
     /// ```
     pub fn new_descending(points: &[Point<T>]) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
@@ -102,13 +105,15 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// # Examples
     ///
     /// ```
+    /// use pav_regression::{Point, IsotonicRegression, Direction};
+    ///
     /// let points = vec![
-    ///     super::point::Point::new(0.0, 1.0),
-    ///     super::point::Point::new(1.0, 2.0),
-    ///     super::point::Point::new(2.0, 1.5),
-    ///     super::point::Point::new(3.0, 3.0),
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(1.0, 2.0),
+    ///     Point::new(2.0, 1.5),
+    ///     Point::new(3.0, 3.0),
     /// ];
-    /// let regression = super::isotonic_regression::IsotonicRegression::new(&points, super::isotonic_regression::Direction::Ascending, false).unwrap();
+    /// let regression = IsotonicRegression::new(&points, Direction::Ascending, false).unwrap();
     /// assert_eq!(regression.get_points().len(), 3);
     /// ```
     fn new(points: &[Point<T>], direction: Direction, intersect_origin: bool) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
@@ -139,13 +144,15 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// # Examples
     ///
     /// ```
+    /// use pav_regression::{Point, IsotonicRegression};
+    ///
     /// let points = vec![
-    ///     super::point::Point::new(0.0, 1.0),
-    ///     super::point::Point::new(1.0, 2.0),
-    ///     super::point::Point::new(2.0, 1.5),
-    ///     super::point::Point::new(3.0, 3.0),
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(1.0, 2.0),
+    ///     Point::new(2.0, 1.5),
+    ///     Point::new(3.0, 3.0),
     /// ];
-    /// let regression = super::isotonic_regression::IsotonicRegression::new_ascending(&points).unwrap();
+    /// let regression = IsotonicRegression::new_ascending(&points).unwrap();
     /// let interpolated_y = regression.interpolate(1.5).unwrap();
     /// assert_eq!(interpolated_y, 1.75);
     /// ```
@@ -199,13 +206,15 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// # Examples
     ///
     /// ```
+    /// use pav_regression::{Point, IsotonicRegression};
+    ///
     /// let points = vec![
-    ///     super::point::Point::new(0.0, 1.0),
-    ///     super::point::Point::new(1.0, 2.0),
-    ///     super::point::Point::new(2.0, 1.5),
-    ///     super::point::Point::new(3.0, 3.0),
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(1.0, 2.0),
+    ///     Point::new(2.0, 1.5),
+    ///     Point::new(3.0, 3.0),
     /// ];
-    /// let regression = super::isotonic_regression::IsotonicRegression::new_ascending(&points).unwrap();
+    /// let regression = IsotonicRegression::new_ascending(&points).unwrap();
     /// assert_eq!(regression.get_points().len(), 3);
     /// ```
     pub fn get_points(&self) -> &[Point<T>] {
@@ -217,15 +226,17 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// # Examples
     ///
     /// ```
+    /// use pav_regression::{Point, IsotonicRegression};
+    ///
     /// let points = vec![
-    ///     super::point::Point::new(0.0, 1.0),
-    ///     super::point::Point::new(1.0, 2.0),
-    ///     super::point::Point::new(2.0, 1.5),
-    ///     super::point::Point::new(3.0, 3.0),
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(1.0, 2.0),
+    ///     Point::new(2.0, 1.5),
+    ///     Point::new(3.0, 3.0),
     /// ];
-    /// let regression = super::isotonic_regression::IsotonicRegression::new_ascending(&points).unwrap();
+    /// let regression = IsotonicRegression::new_ascending(&points).unwrap();
     /// let centroid = regression.get_centroid_point().unwrap();
-    /// assert_eq!(*centroid.x(), 1.0);
+    /// assert_eq!(*centroid.x(), 1.5);
     /// assert_eq!(*centroid.y(), 1.875);
     /// ```
     pub fn get_centroid_point(&self) -> Option<Point<T>> {
@@ -245,11 +256,13 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// # Examples
     ///
     /// ```
-    /// let mut regression = super::isotonic_regression::IsotonicRegression::new_ascending(&[
-    ///     super::point::Point::new(0.0, 1.0),
-    ///     super::point::Point::new(2.0, 2.0),
+    /// use pav_regression::{Point, IsotonicRegression};
+    ///
+    /// let mut regression = IsotonicRegression::new_ascending(&[
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(2.0, 2.0),
     /// ]).unwrap();
-    /// regression.add_points(&[super::Point::new(1.0, 1.5)]);
+    /// regression.add_points(&[Point::new(1.0, 1.5)]);
     /// assert_eq!(regression.get_points().len(), 3);
     /// ```
     pub fn add_points(&mut self, points: &[Point<T>]) {
@@ -272,12 +285,14 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// # Examples
     ///
     /// ```
-    /// let mut regression = super::isotonic_regression::IsotonicRegression::new_ascending(&[
-    ///     super::point::Point::new(0.0, 1.0),
-    ///     super::point::Point::new(1.0, 2.0),
-    ///     super::point::Point::new(2.0, 3.0),
+    /// use pav_regression::{Point, IsotonicRegression};
+    ///
+    /// let mut regression = IsotonicRegression::new_ascending(&[
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(1.0, 2.0),
+    ///     Point::new(2.0, 3.0),
     /// ]).unwrap();
-    /// regression.remove_points(&[super::Point::new(1.0, 2.0)]);
+    /// regression.remove_points(&[Point::new(1.0, 2.0)]);
     /// assert_eq!(regression.get_points().len(), 2);
     /// ```
     pub fn remove_points(&mut self, points: &[Point<T>]) {
@@ -303,16 +318,15 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// # Examples
     ///
     /// ```
-    /// use super::point::Point;
-    /// use super::isotonic_regression::IsotonicRegression;
+    /// use pav_regression::{Point, IsotonicRegression};
     ///
     /// let points = vec![
-    ///     super::Point::new(0.0, 1.0),
-    ///     super::Point::new(1.0, 2.0),
-    ///     super::Point::new(2.0, 1.5),
-    ///     super::Point::new(3.0, 3.0),
+    ///     Point::new(0.0, 1.0),
+    ///     Point::new(1.0, 2.0),
+    ///     Point::new(2.0, 1.5),
+    ///     Point::new(3.0, 3.0),
     /// ];
-    /// let regression = super::IsotonicRegression::new_ascending(&points).unwrap();
+    /// let regression = IsotonicRegression::new_ascending(&points).unwrap();
     /// assert_eq!(regression.len(), 4);
     /// ```
     pub fn len(&self) -> usize {
@@ -324,7 +338,9 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// # Examples
     ///
     /// ```
-    /// let regression: super::isotonic_regression::IsotonicRegression<f64> = super::isotonic_regression::IsotonicRegression::new_ascending(&[]).unwrap();
+    /// use pav_regression::IsotonicRegression;
+    ///
+    /// let regression: IsotonicRegression<f64> = IsotonicRegression::new_ascending(&[]).unwrap();
     /// assert!(regression.is_empty());
     /// ```
     #[must_use]
