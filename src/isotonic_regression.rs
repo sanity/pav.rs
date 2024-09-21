@@ -33,8 +33,11 @@ struct Centroid<T: Coordinate> {
 #[derive(Debug, Clone, Serialize)]
 #[derive(PartialEq)]
 #[allow(dead_code)]
+/// Specifies the direction of the isotonic regression.
 pub enum Direction {
+    /// Indicates an ascending (non-decreasing) regression.
     Ascending,
+    /// Indicates a descending (non-increasing) regression.
     Descending,
 }
 
