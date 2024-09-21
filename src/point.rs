@@ -128,7 +128,8 @@ impl<T: Coordinate> From<(T, T)> for Point<T> {
 /// # Examples
 ///
 /// ```
-/// use pav_regression::{Point, interpolate_two_points};
+/// use pav_regression::Point;
+/// use pav_regression::point::interpolate_two_points;
 ///
 /// let point1 = Point::new(0.0, 0.0);
 /// let point2 = Point::new(2.0, 2.0);

@@ -108,7 +108,8 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// # Examples
     ///
     /// ```
-    /// use pav_regression::{Point, IsotonicRegression, Direction};
+    /// use pav_regression::{Point, IsotonicRegression};
+    /// use pav_regression::isotonic_regression::Direction;
     ///
     /// let points = vec![
     ///     Point::new(0.0, 1.0),
