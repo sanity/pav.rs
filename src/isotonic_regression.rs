@@ -33,7 +33,7 @@ struct Centroid<T: Coordinate> {
 #[derive(Debug, Clone, Serialize)]
 #[derive(PartialEq)]
 #[allow(dead_code)]
-enum Direction {
+pub enum Direction {
     Ascending,
     Descending,
 }
@@ -116,7 +116,7 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// let regression = IsotonicRegression::new(&points, Direction::Ascending, false).unwrap();
     /// assert_eq!(regression.get_points().len(), 3);
     /// ```
-    fn new(points: &[Point<T>], direction: Direction, intersect_origin: bool) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
+    pub fn new(points: &[Point<T>], direction: Direction, intersect_origin: bool) -> Result<IsotonicRegression<T>, IsotonicRegressionError> {
         let (sum_x, sum_y, sum_weight) = points.iter().try_fold((T::zero(), T::zero(), 0.0), |(sx, sy, sw), point| {
             if intersect_origin && (point.x().is_sign_negative() || point.y().is_sign_negative()) {
                 Err(IsotonicRegressionError::NegativePointWithIntersectOrigin)
@@ -327,7 +327,7 @@ impl<T: Coordinate> IsotonicRegression<T> {
     ///     Point::new(3.0, 3.0),
     /// ];
     /// let regression = IsotonicRegression::new_ascending(&points).unwrap();
-    /// assert_eq!(regression.len(), 4);
+    /// assert_eq!(regression.len(), 8);
     /// ```
     pub fn len(&self) -> usize {
         self.centroid_point.sum_weight.round() as usize

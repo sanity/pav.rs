@@ -108,7 +108,7 @@ impl<T: Coordinate> Point<T> {
     /// assert_eq!(*point1.y(), 3.5);
     /// assert_eq!(point1.weight(), 2.0);
     /// ```
-    pub(crate) fn merge_with(&mut self, other: &Point<T>) {
+    pub fn merge_with(&mut self, other: &Point<T>) {
         let total_weight = self.weight + other.weight;
         self.x = (self.x * T::from_float(self.weight) + other.x * T::from_float(other.weight)) / T::from_float(total_weight);
         self.y = (self.y * T::from_float(self.weight) + other.y * T::from_float(other.weight)) / T::from_float(total_weight);
@@ -135,7 +135,7 @@ impl<T: Coordinate> From<(T, T)> for Point<T> {
 /// let interpolated_y = interpolate_two_points(&point1, &point2, 1.0);
 /// assert_eq!(interpolated_y, 1.0);
 /// ```
-pub(crate) fn interpolate_two_points<T: Coordinate>(a: &Point<T>, b: &Point<T>, at_x: T) -> T {
+pub fn interpolate_two_points<T: Coordinate>(a: &Point<T>, b: &Point<T>, at_x: T) -> T {
     let prop = (at_x - a.x) / (b.x - a.x);
     a.y + (b.y - a.y) * prop
 }
