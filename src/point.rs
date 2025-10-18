@@ -1,5 +1,5 @@
-use serde::Serialize;
 use crate::coordinate::Coordinate;
+use serde::Serialize;
 
 /// A point in 2D cartesian space
 #[derive(Debug, PartialEq, Copy, Clone, Serialize)]
@@ -110,8 +110,10 @@ impl<T: Coordinate> Point<T> {
     /// ```
     pub fn merge_with(&mut self, other: &Point<T>) {
         let total_weight = self.weight + other.weight;
-        self.x = (self.x * T::from_float(self.weight) + other.x * T::from_float(other.weight)) / T::from_float(total_weight);
-        self.y = (self.y * T::from_float(self.weight) + other.y * T::from_float(other.weight)) / T::from_float(total_weight);
+        self.x = (self.x * T::from_float(self.weight) + other.x * T::from_float(other.weight))
+            / T::from_float(total_weight);
+        self.y = (self.y * T::from_float(self.weight) + other.y * T::from_float(other.weight))
+            / T::from_float(total_weight);
         self.weight = total_weight;
     }
 }

@@ -2,9 +2,16 @@ use std::ops::{Add, AddAssign, Div, Mul, Neg, Sub};
 
 /// Trait for coordinate types used in Point
 pub trait Coordinate:
-    Copy + Clone + PartialOrd + PartialEq +
-    Add<Output = Self> + Sub<Output = Self> + Mul<Self, Output = Self> + Div<Self, Output = Self> +
-    AddAssign + Neg<Output = Self>
+    Copy
+    + Clone
+    + PartialOrd
+    + PartialEq
+    + Add<Output = Self>
+    + Sub<Output = Self>
+    + Mul<Self, Output = Self>
+    + Div<Self, Output = Self>
+    + AddAssign
+    + Neg<Output = Self>
 {
     /// Returns the zero value for this coordinate type.
     ///
