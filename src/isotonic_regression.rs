@@ -1,6 +1,6 @@
 use crate::coordinate::Coordinate;
 use crate::point::{interpolate_two_points, Point};
-use eytzinger::SliceExt;
+use eytzinger_interpolation::SliceExt;
 use serde::Serialize;
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
@@ -153,7 +153,7 @@ impl<T: Coordinate> IsotonicRegression<T> {
                 })?;
 
         let mut isotonic_points = isotonic(points, direction.clone());
-        isotonic_points.eytzingerize(&mut eytzinger::permutation::InplacePermutator);
+        isotonic_points.eytzingerize(&mut eytzinger_interpolation::permutation::InplacePermutator);
 
         Ok(IsotonicRegression {
             direction,
@@ -331,7 +331,7 @@ impl<T: Coordinate> IsotonicRegression<T> {
         new_points.extend_from_slice(points);
         self.points = isotonic(&new_points, self.direction.clone());
         self.points
-            .eytzingerize(&mut eytzinger::permutation::InplacePermutator);
+            .eytzingerize(&mut eytzinger_interpolation::permutation::InplacePermutator);
     }
 
     /// Remove points from the regression.
@@ -373,7 +373,7 @@ impl<T: Coordinate> IsotonicRegression<T> {
         }
         self.points = isotonic(&new_points, self.direction.clone());
         self.points
-            .eytzingerize(&mut eytzinger::permutation::InplacePermutator);
+            .eytzingerize(&mut eytzinger_interpolation::permutation::InplacePermutator);
     }
 
     /// Returns the number of points in the regression.
