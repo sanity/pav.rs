@@ -3,11 +3,11 @@ name = "pav_regression"
 description = "The pair adjacent violators algorithm for isotonic regression"
 homepage = "https://github.com/sanity/pav.rs"
 repository = "https://github.com/sanity/pav.rs"
-version = "0.5.2"
+version = "0.6.0"
 authors = ["Ian Clarke <ian@freenet.org>"]
 edition = "2018"
 license = "LGPL-3.0-or-later"
-readme="README.md"
+readme = "README.md"
 keywords = ["machine-learning"]
 documentation = "https://docs.rs/pav_regression/"
 
@@ -18,7 +18,7 @@ path = "src/lib.rs"
 [dependencies]
 ordered-float = "3.9.2"
 serde = { version = "1.0.210", features = ["derive"] }
-thiserror = "1.0"
+thiserror = "2.0.4"
 
 [dev-dependencies]
 rand = "0.8.5"
