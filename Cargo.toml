@@ -16,6 +16,7 @@ name = "pav_regression"
 path = "src/lib.rs"
 
 [dependencies]
+eytzinger = { git = "https://github.com/anchpop/rust-eytzinger.git", rev = "ff5d86b8e5280c1f46c86fa135b0e0592cea1135"}
 ordered-float = "3.9.2"
 serde = { version = "1.0.210", features = ["derive"] }
 thiserror = "1.0"
