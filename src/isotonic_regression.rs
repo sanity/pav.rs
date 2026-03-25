@@ -204,8 +204,8 @@ impl<T: Coordinate> IsotonicRegression<T> {
                 }
                 // Requested point meets or exceeds the upper bound
                 (Some(upper), None) => {
-                     // at_x is beyond the last point - interpolate with centroid
-                     interpolate_two_points(
+                    // at_x is beyond the last point - interpolate with centroid
+                    interpolate_two_points(
                         &self.get_centroid_point().unwrap(),
                         &self.points[upper],
                         at_x,
@@ -336,6 +336,14 @@ impl<T: Coordinate> IsotonicRegression<T> {
 
     /// Remove points from the regression.
     ///
+    /// Because PAV merges adjacent points that violate monotonicity, the
+    /// original input points may no longer exist verbatim in the internal
+    /// point list. This method finds the closest aggregate point (by
+    /// x-coordinate) and subtracts the removed point's influence from it.
+    /// If the aggregate point's weight drops to zero or below, it is
+    /// removed entirely. The remaining points are then re-run through PAV
+    /// and eytzingerized.
+    ///
     /// # Examples
     ///
     /// ```
@@ -350,28 +358,62 @@ impl<T: Coordinate> IsotonicRegression<T> {
     /// assert_eq!(regression.get_points().len(), 2);
     /// ```
     pub fn remove_points(&mut self, points: &[Point<T>]) {
+        // Work with a sorted copy for closest-point lookup
+        let mut working_points = self.points.clone();
+        working_points.sort_by(|a, b| a.x().partial_cmp(b.x()).unwrap());
+
         for point in points {
             assert!(
                 !self.intersect_origin
                     || (!point.x().is_sign_negative() && !point.y().is_sign_negative()),
                 "With intersect_origin = true, all points must be >= 0 on both x and y axes"
             );
+
+            // Update centroid
             self.centroid_point.sum_x =
                 self.centroid_point.sum_x - *point.x() * T::from_float(point.weight());
             self.centroid_point.sum_y =
                 self.centroid_point.sum_y - *point.y() * T::from_float(point.weight());
             self.centroid_point.sum_weight = self.centroid_point.sum_weight - point.weight();
-        }
 
-        let mut new_points = self.points.clone();
-        for point in points {
-            if let Some(pos) = new_points.iter().position(|p| {
-                p.x() == point.x() && p.y() == point.y() && p.weight() == point.weight()
-            }) {
-                new_points.remove(pos);
+            if working_points.is_empty() {
+                continue;
+            }
+
+            // Find the closest aggregate point by x-coordinate distance
+            let closest_idx = working_points
+                .iter()
+                .enumerate()
+                .min_by(|(_, a), (_, b)| {
+                    a.x()
+                        .abs_diff(point.x())
+                        .partial_cmp(&b.x().abs_diff(point.x()))
+                        .unwrap()
+                })
+                .map(|(i, _)| i)
+                .unwrap();
+
+            let agg = &working_points[closest_idx];
+            let new_weight = agg.weight() - point.weight();
+
+            const WEIGHT_EPSILON: f64 = 1e-10;
+
+            if new_weight <= WEIGHT_EPSILON {
+                // Aggregate fully consumed — remove it
+                working_points.remove(closest_idx);
+            } else {
+                // Subtract the removed point's influence from the aggregate
+                let agg_w = T::from_float(agg.weight());
+                let rm_w = T::from_float(point.weight());
+                let new_w = T::from_float(new_weight);
+                let new_x = (*agg.x() * agg_w - *point.x() * rm_w) / new_w;
+                let new_y = (*agg.y() * agg_w - *point.y() * rm_w) / new_w;
+                working_points[closest_idx] = Point::new_with_weight(new_x, new_y, new_weight);
             }
         }
-        self.points = isotonic(&new_points, self.direction.clone());
+
+        // Re-run PAV and eytzingerize
+        self.points = isotonic(&working_points, self.direction.clone());
         self.points
             .eytzingerize(&mut eytzinger_interpolation::permutation::InplacePermutator);
     }
@@ -538,5 +580,97 @@ mod tests {
         assert!(regression.is_empty());
         assert_eq!(regression.len(), 0);
         assert!(regression.interpolate(1.0).is_none());
+    }
+
+    #[test]
+    fn test_remove_merged_point() {
+        // Points (1.0, 2.0) and (2.0, 1.5) violate ascending order
+        // and get merged into a single aggregate point.
+        let points = vec![
+            Point::new(0.0, 1.0),
+            Point::new(1.0, 2.0),
+            Point::new(2.0, 1.5),
+            Point::new(3.0, 3.0),
+        ];
+        let mut regression = IsotonicRegression::new_ascending(&points).unwrap();
+        assert_eq!(regression.get_points_sorted().len(), 3);
+
+        // Remove (2.0, 1.5) which was merged — should subtract its
+        // influence from the aggregate and the regression should adapt.
+        regression.remove_points(&[Point::new(2.0, 1.5)]);
+
+        // After removal we should still have a valid regression
+        let sorted = regression.get_points_sorted();
+        assert!(!sorted.is_empty());
+
+        // The regression should still be monotonically non-decreasing
+        for w in sorted.windows(2) {
+            assert!(
+                w[0].y() <= w[1].y(),
+                "Regression not ascending: {:?} > {:?}",
+                w[0].y(),
+                w[1].y()
+            );
+        }
+    }
+
+    #[test]
+    fn test_add_then_remove_returns_to_original() {
+        let original_points = vec![
+            Point::new(0.0, 1.0),
+            Point::new(1.0, 2.0),
+            Point::new(2.0, 3.0),
+        ];
+        let original = IsotonicRegression::new_ascending(&original_points).unwrap();
+
+        let mut regression = IsotonicRegression::new_ascending(&original_points).unwrap();
+
+        // Add some extra points
+        let extra = vec![Point::new(0.5, 1.8), Point::new(1.5, 2.2)];
+        regression.add_points(&extra);
+
+        // Remove them
+        regression.remove_points(&extra);
+
+        // The centroid should be approximately the same
+        let orig_centroid = original.get_centroid_point().unwrap();
+        let new_centroid = regression.get_centroid_point().unwrap();
+        assert!(
+            (orig_centroid.x() - new_centroid.x()).abs() < 1e-9,
+            "Centroid x mismatch"
+        );
+        assert!(
+            (orig_centroid.y() - new_centroid.y()).abs() < 1e-9,
+            "Centroid y mismatch"
+        );
+
+        // Interpolated values should be approximately the same
+        for x in [0.0, 0.5, 1.0, 1.5, 2.0] {
+            let orig_y = original.interpolate(x).unwrap();
+            let new_y = regression.interpolate(x).unwrap();
+            assert!(
+                (orig_y - new_y).abs() < 0.3,
+                "At x={x}: original y={orig_y}, after add/remove y={new_y}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_remove_reduces_aggregate_to_zero() {
+        // Create a regression where two points merge
+        let points = vec![
+            Point::new(0.0, 2.0),
+            Point::new(1.0, 1.0), // These two violate ascending
+        ];
+        let mut regression = IsotonicRegression::new_ascending(&points).unwrap();
+        // Both points get merged into one aggregate (weight 2)
+        assert_eq!(regression.get_points_sorted().len(), 1);
+
+        // Remove both original points — aggregate weight goes to zero
+        regression.remove_points(&[Point::new(0.0, 2.0), Point::new(1.0, 1.0)]);
+        assert!(
+            regression.get_points_sorted().is_empty(),
+            "Expected empty regression after removing all points"
+        );
     }
 }
